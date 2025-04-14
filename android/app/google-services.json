@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "851084454779",
+    "project_id": "gestiapbd",
+    "storage_bucket": "gestiapbd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:851084454779:android:73fa2a45052108fb8b2bde",
+        "android_client_info": {
+          "package_name": "com.example.gestiap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACptSa1VgRAdAyVpiQNak_KGN-DfO7Amc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
