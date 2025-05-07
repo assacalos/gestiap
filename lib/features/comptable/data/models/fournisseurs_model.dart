@@ -1,22 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FournisseurModel {
-  String? id;
+  String id;
   String nom;
-  String? entreprise;
-  String? adresse;
-  String? contact;
-  String? email;
-  String? informationsBancaires; // Optionnel
+  String entreprise;
+  String adresse;
+  String contact;
+  String email;
+  String informationsBancaires; // Optionnel
 
   FournisseurModel({
-    this.id,
+    required this.id,
     required this.nom,
-    this.entreprise,
-    this.adresse,
-    this.contact,
-    this.email,
-    this.informationsBancaires,
+    required this.entreprise,
+    required this.adresse,
+    required this.contact,
+    required this.email,
+    required this.informationsBancaires,
   });
 
   factory FournisseurModel.fromJson(Map<String, dynamic> json) {

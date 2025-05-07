@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class DepenseModel {
-  String? id;
+class ChargesModel {
+  String id;
   String description;
   DateTime date;
   double montant;
@@ -13,8 +13,8 @@ class DepenseModel {
   String?
   pieceJustificativeUrl; // Nouvelle propriété pour l'URL de la pièce jointe
 
-  DepenseModel({
-    this.id,
+  ChargesModel({
+    required this.id,
     required this.description,
     required this.date,
     required this.montant,
@@ -26,8 +26,8 @@ class DepenseModel {
     this.pieceJustificativeUrl,
   });
 
-  factory DepenseModel.fromJson(Map<String, dynamic> json) {
-    return DepenseModel(
+  factory ChargesModel.fromJson(Map<String, dynamic> json) {
+    return ChargesModel(
       id: json['id'],
       description: json['description'],
       date: (json['date'] as Timestamp).toDate(),
@@ -56,7 +56,7 @@ class DepenseModel {
     };
   }
 
-  DepenseModel copyWith({
+  ChargesModel copyWith({
     String? id,
     String? description,
     DateTime? date,
@@ -68,7 +68,7 @@ class DepenseModel {
     String? methodePaiement,
     String? pieceJustificativeUrl,
   }) {
-    return DepenseModel(
+    return ChargesModel(
       id: id ?? this.id,
       description: description ?? this.description,
       date: date ?? this.date,

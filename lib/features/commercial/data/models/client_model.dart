@@ -5,6 +5,7 @@ class Client {
   String telephone;
   String entreprise;
   String adresse;
+  String commercialId;
 
   Client({
     required this.id,
@@ -13,6 +14,7 @@ class Client {
     required this.telephone,
     required this.entreprise,
     required this.adresse,
+    this.commercialId = '', // Valeur par défaut pour commercialId
   });
 
   // Convertir un client en Map pour Firestore
@@ -24,6 +26,7 @@ class Client {
       'telephone': telephone,
       'entreprise': entreprise,
       'adresse': adresse,
+      'commercialId': commercialId, // Inclure commercialId dans le Map
     };
   }
 
@@ -36,6 +39,7 @@ class Client {
       telephone: data['telephone'] ?? '',
       entreprise: data['entreprise'] ?? '',
       adresse: data['adresse'] ?? '',
+      commercialId: data['commercialId'] ?? '', // Inclure commercialId
     );
   }
 }

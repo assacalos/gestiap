@@ -4,7 +4,7 @@ import 'package:gestiap/features/comptable/data/models/charge_model.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 
-Future<void> generateDepensePdf(DepenseModel depense) async {
+Future<void> generateDepensePdf(ChargesModel depense) async {
   final pdf = pw.Document();
 
   pdf.addPage(

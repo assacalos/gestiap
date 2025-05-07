@@ -6,6 +6,11 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // 🔹 Getter pour obtenir l'utilisateur actuel
+  User? get currentUser {
+    return _auth.currentUser;
+  }
+
   // 🔹 Inscription avec email et mot de passe
   String generateRandomPassword({int length = 12}) {
     const characters =
@@ -106,12 +111,3 @@ class AuthService {
     }
   }
 }
-
-
-/* 
-
-  // Listen to auth state changes
-  Stream<User?> authStateChanges() {
-    return _firebaseAuth.authStateChanges();
-  }
-} */

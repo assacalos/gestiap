@@ -1,5 +1,5 @@
 class StockItem {
-  final String? id;
+  final String id;
   final String codeProduit;
   final String description;
   final double prixVenteUnitaire;
@@ -8,7 +8,7 @@ class StockItem {
   final DateTime dateAjout;
 
   StockItem({
-    this.id,
+    required this.id,
     required this.codeProduit,
     required this.description,
     required this.prixVenteUnitaire,
@@ -50,7 +50,7 @@ class StockItem {
 
   factory StockItem.fromMap(Map<String, dynamic> map, String? id) {
     return StockItem(
-      id: id,
+      id: id ?? '',
       codeProduit: map['codeProduit'] ?? '',
       description: map['description'] ?? '',
       prixVenteUnitaire: (map['prixVenteUnitaire'] ?? 0.0).toDouble(),

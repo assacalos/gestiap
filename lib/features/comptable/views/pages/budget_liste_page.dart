@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gestiap/features/comptable/views/pages/budget_form_page.dart';
-import 'package:gestiap/features/comptable/views/providers/budget.provider.dart';
+import 'package:gestiap/features/comptable/providers/budget.provider.dart';
 import 'package:provider/provider.dart';
 import 'package:gestiap/features/comptable/data/models/budget_model.dart';
 import 'package:intl/intl.dart';

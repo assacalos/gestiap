@@ -43,6 +43,8 @@ class QuoteModel {
   int ref;
   final double totalHT;
   final double totalTTC;
+  String commercialId;
+  String? commentaire; // Ajout d'un champ commentaire
 
   // Définition des constantes statiques pour les statuts
   static const String statusDraft = 'Brouillon';
@@ -63,6 +65,8 @@ class QuoteModel {
     required this.items,
     required this.remise,
     required this.ref,
+    required this.commercialId,
+    this.commentaire,
     required this.totalHT,
     required this.totalTTC,
   });
@@ -78,6 +82,8 @@ class QuoteModel {
     String? status,
     List<QuoteItem>? items,
     int? ref,
+    String? commercialId,
+    String? commentaire,
     double? totalHT,
     double? totalTTC,
   }) {
@@ -92,6 +98,8 @@ class QuoteModel {
       status: status ?? this.status,
       items: items ?? this.items,
       ref: ref ?? this.ref,
+      commercialId: commercialId ?? this.commercialId,
+      commentaire: commentaire ?? this.commentaire,
       totalHT: totalHT ?? this.totalHT,
       totalTTC: totalTTC ?? this.totalTTC,
     );
@@ -125,6 +133,8 @@ class QuoteModel {
       status: data['status'] ?? '',
       remise: (data['remise'] ?? 0).toDouble(),
       ref: data['ref'] ?? 0,
+      commercialId: data['commercialId'] ?? '',
+      commentaire: data['commentaire'] ?? '', // Ajout du champ commentaire
       totalHT: (data['totalHT'] ?? 0).toDouble(),
       totalTTC: (data['totalTTC'] ?? 0).toDouble(),
       items:
@@ -147,6 +157,8 @@ class QuoteModel {
       'ref': ref,
       'remise': remise,
       'items': items.map((item) => item.toMap()).toList(),
+      'commercialId': commercialId,
+      'commentaire': commentaire, // Ajout du champ commentaire
       'totalHT': totalHT,
       'totalTTC': totalTTC,
     };

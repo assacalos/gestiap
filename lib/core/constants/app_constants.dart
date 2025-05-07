@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 class AppConstants {
   // Nom de l'application
   static const String appName = 'GestApp';
+  static const String clients = 'clients';
+  // static const String users = 'users'; // Si tu as une collection pour les utilisateurs
+  // static const String commandes = 'commandes';
+  // static const String produits = 'produits';
+  // etc.
 
   // Couleurs de l'application
   static const primaryColor = Colors.blue;

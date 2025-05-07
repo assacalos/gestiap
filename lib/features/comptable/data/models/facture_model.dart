@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class InvoiceModel {
-  String? id;
+  String id;
   String clientId;
   String clientName;
   DateTime dateCreation;
@@ -9,12 +9,14 @@ class InvoiceModel {
   List<InvoiceItem> items;
   double totalHT;
   double totalTTC;
+  double montantTVA;
   double? montantPaye;
-  String status; // 'Brouillon', 'Soumise', 'Payée', 'Impayée'
+  String status;
   String? reference;
+  String? commentaireRejet;
 
   InvoiceModel({
-    this.id,
+    required this.id,
     required this.clientId,
     required this.clientName,
     required this.dateCreation,
@@ -22,9 +24,11 @@ class InvoiceModel {
     required this.items,
     required this.totalHT,
     required this.totalTTC,
+    required this.montantTVA,
     this.montantPaye,
     required this.status,
     this.reference,
+    this.commentaireRejet,
   });
 
   factory InvoiceModel.fromJson(Map<String, dynamic> json) {
@@ -43,12 +47,14 @@ class InvoiceModel {
               .toList(),
       totalHT: (json['totalHT'] as num).toDouble(),
       totalTTC: (json['totalTTC'] as num).toDouble(),
+      montantTVA: (json['montantTva'] as num).toDouble(),
       montantPaye:
           json['montantPaye'] != null
               ? (json['montantPaye'] as num).toDouble()
               : null,
       status: json['status'],
       reference: json['reference'],
+      commentaireRejet: json['commentaireRejet'],
     );
   }
 
@@ -62,9 +68,11 @@ class InvoiceModel {
       'items': items.map((item) => item.toJson()).toList(),
       'totalHT': totalHT,
       'totalTTC': totalTTC,
+      'montantTva': montantTVA,
       'montantPaye': montantPaye,
       'status': status,
       'reference': reference,
+      'commentaireRejet': commentaireRejet,
     };
   }
 
@@ -77,9 +85,11 @@ class InvoiceModel {
     List<InvoiceItem>? items,
     double? totalHT,
     double? totalTTC,
+    double? montantTVA,
     double? montantPaye,
     String? status,
     String? reference,
+    String? commentaireRejet,
   }) {
     return InvoiceModel(
       id: id ?? this.id,
@@ -90,15 +100,18 @@ class InvoiceModel {
       items: items ?? this.items,
       totalHT: totalHT ?? this.totalHT,
       totalTTC: totalTTC ?? this.totalTTC,
+      montantTVA: montantTVA ?? this.montantTVA,
       montantPaye: montantPaye ?? this.montantPaye,
       status: status ?? this.status,
       reference: reference ?? this.reference,
+      commentaireRejet: commentaireRejet ?? this.commentaireRejet,
     );
   }
 
-  static const String statusBrouillon = 'Brouillon';
-  static const String statusSoumise = 'Soumise';
+  static const String statusValidated = 'validée';
+  static const String statusSubmitted = 'Soumise';
   static const String statusPayee = 'Payée';
+  static const String statusRejected = 'Rejetée';
   static const String statusImpayee = 'Impayée';
 }
 
