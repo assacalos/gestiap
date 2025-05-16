@@ -79,6 +79,31 @@ class BordereauxProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> loadAllBordereaux() async {
+    _errorMessage = null;
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _bordereauService.getAllBordereauxStream().listen(
+        (bordereauList) {
+          _bordereaux = bordereauList;
+          _isLoading = false;
+          notifyListeners();
+        },
+        onError: (error) {
+          _errorMessage = "Erreur lors du chargement : $error";
+          _isLoading = false;
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      _errorMessage = "Erreur inattendue : $e";
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   // Ajouter un bordereau
   Future<void> addBordereau(
     BordereauModel bordereau,

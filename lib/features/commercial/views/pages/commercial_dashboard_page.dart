@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:gestiap/core/widgets/widgets_widgets.dart'; // Assurez-vous que le chemin d'accès est correct
 import 'package:gestiap/features/commercial/views/pages/bon_commande/bon_commande_list.dart'; // Assurez-vous que le chemin d'accès est correct
+import 'package:gestiap/features/commercial/views/pages/clients/client_status_clients.dart';
 import 'package:gestiap/features/commercial/views/pages/clients/clients_page.dart'; // Assurez-vous que le chemin d'accès est correct
 import 'package:gestiap/features/commercial/views/pages/proforma/proforma_page.dart'; // Assurez-vous que le chemin d'accès est correct
 import 'package:gestiap/features/commercial/views/pages/bordereaux/status_bordereau_page.dart';
 import 'package:gestiap/features/commercial/views/pages/proforma/status_Proforma_page.dart';
+import 'package:gestiap/views/conf/settings_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:gestiap/core/constants/app_constants.dart';
@@ -22,6 +24,32 @@ class CommercialDashboardPage extends StatefulWidget {
 
 class _CommercialDashboardPageState extends State<CommercialDashboardPage> {
   int _currentPageIndex = 0;
+  Widget _currentBody = CommercialDashboardPage(); // Page d'accueil par défaut
+  void _handleTabChange(int index) {
+    setState(() {
+      _currentPageIndex = index;
+      switch (index) {
+        case 0:
+          _currentBody =
+              CommercialDashboardPage(); // Afficher la page d'accueil
+          break;
+        case 1:
+          // Naviguer vers l'écran des paramètres (ouvrir un nouvel écran)
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SettingsScreen()),
+          ).then((_) {
+            // Lorsque l'on revient de l'écran des paramètres, réinitialiser l'index
+            setState(() {
+              _currentPageIndex = 0; // Retourner à l'onglet "Home" par défaut
+            });
+          });
+          break;
+        // Ajoutez d'autres cas pour d'autres onglets si nécessaire
+      }
+    });
+  }
+
   // Données factices pour l'aperçu des performances - Remplacez par vos données réelles
   double _salesRevenue = 1500000.00;
   double _salesTarget = 2000000.00;
@@ -40,10 +68,11 @@ class _CommercialDashboardPageState extends State<CommercialDashboardPage> {
     ); // Accède au ClientProvider
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(),
+      /* AppBar(
         title: Text('Tableau de Bord Commercial'),
         centerTitle: true,
-      ),
+      ), */
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -59,11 +88,7 @@ class _CommercialDashboardPageState extends State<CommercialDashboardPage> {
         ),
       ),
       bottomNavigationBar: CustomBottomNavigationBar(
-        onTabChange: (index) {
-          setState(() {
-            _currentPageIndex = index;
-          });
-        },
+        onTabChange: _handleTabChange,
         initialIndex: _currentPageIndex,
       ),
     );
@@ -214,7 +239,7 @@ class _CommercialDashboardPageState extends State<CommercialDashboardPage> {
         _buildDashboardItem(context, 'Gestion des clients', Icons.people, () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => ClientsPage()),
+            MaterialPageRoute(builder: (context) => ClientDashboardPage()),
           );
         }),
         _buildDashboardItem(

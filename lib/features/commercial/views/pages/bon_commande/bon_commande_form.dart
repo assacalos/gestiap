@@ -21,7 +21,7 @@ class BonDeCommandeFormPage extends StatefulWidget {
 class _BonDeCommandeFormPageState extends State<BonDeCommandeFormPage> {
   final _formKey = GlobalKey<FormState>();
   String? _selectedClientId;
-  String? _selectedBordereauId;
+  // String? _selectedBordereauId;
   String? _selectedProformaId;
   TextEditingController _acompteController = TextEditingController();
   String? _scannedDocumentUrl;
@@ -32,7 +32,7 @@ class _BonDeCommandeFormPageState extends State<BonDeCommandeFormPage> {
     super.initState();
     if (widget.bonDeCommandeToEdit != null) {
       _selectedClientId = widget.bonDeCommandeToEdit!.clientId;
-      _selectedBordereauId = widget.bonDeCommandeToEdit!.bordereauId;
+      // _selectedBordereauId = widget.bonDeCommandeToEdit!.bordereauId;
       _selectedProformaId = widget.bonDeCommandeToEdit!.proformaId;
       _acompteController.text =
           widget.bonDeCommandeToEdit!.acompteRecu.toString();
@@ -69,7 +69,7 @@ class _BonDeCommandeFormPageState extends State<BonDeCommandeFormPage> {
       return BonDeCommandeModel(
         id: widget.bonDeCommandeToEdit?.id,
         clientId: _selectedClientId!,
-        bordereauId: _selectedBordereauId,
+        // bordereauId: _selectedBordereauId,
         proformaId: _selectedProformaId,
         documentScanneUrl: _scannedDocumentUrl,
         acompteRecu: double.tryParse(_acompteController.text) ?? 0.0,
@@ -151,12 +151,12 @@ class _BonDeCommandeFormPageState extends State<BonDeCommandeFormPage> {
                 decoration: InputDecoration(
                   labelText: 'Bordereau Associé (Optionnel)',
                 ),
-                value: _selectedBordereauId,
+                //   value: _selectedBordereauId,
                 items:
                     [], // TODO: Remplir avec les bordereaux du client sélectionné
                 onChanged: (value) {
                   setState(() {
-                    _selectedBordereauId = value;
+                    //    _selectedBordereauId = value;
                   });
                 },
               ),

@@ -1,31 +1,45 @@
-import 'package:flutter/material.dart';
+/* import 'package:flutter/material.dart';
 import 'package:gestiap/core/widgets/widgets_widgets.dart';
 import 'package:gestiap/features/commercial/data/models/client_model.dart';
 import 'package:gestiap/features/commercial/providers/clients/clients_provider.dart';
+import 'package:gestiap/features/commercial/views/pages/clients/clients_details.dart';
 import 'package:gestiap/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
 class ClientsPage extends StatefulWidget {
+  final String status;
+  final List<Client> clients;
+  const ClientsPage({super.key, required this.status, required this.clients});
+
   @override
   _ClientsPageState createState() => _ClientsPageState();
 }
 
 class _ClientsPageState extends State<ClientsPage> {
+  ScrollController _scrollController = ScrollController();
+  int _currentPageIndex = 0;
+  String _searchQuery = '';
   final _formKey = GlobalKey<FormState>();
+
   final _nomController = TextEditingController();
   final _emailController = TextEditingController();
   final _telephoneController = TextEditingController();
   final _entrepriseController = TextEditingController();
   final _adresseController = TextEditingController();
-  final _commercialIdController = TextEditingController();
-  final _clientIdController = TextEditingController();
+  final _situationGeoController = TextEditingController();
 
-  int _currentPageIndex = 0;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ClientProvider>(context, listen: false).loadClients();
+    });
+    _scrollController = ScrollController();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 100) {
+        Provider.of<ClientProvider>(context, listen: false).loadClients();
+      }
     });
   }
 
@@ -33,141 +47,160 @@ class _ClientsPageState extends State<ClientsPage> {
   Widget build(BuildContext context) {
     final clientProvider = Provider.of<ClientProvider>(context);
 
+    final filteredClients =
+        clientProvider.clients.where((client) {
+          return client.nom.toLowerCase().contains(
+                _searchQuery.toLowerCase(),
+              ) ||
+              client.entreprise.toLowerCase().contains(
+                _searchQuery.toLowerCase(),
+              );
+        }).toList();
+
     return Scaffold(
-      appBar: AppBar(title: Text("Gestion des Clients")),
-      body: ListView.builder(
-        itemCount: clientProvider.clients.length,
-        itemBuilder: (context, index) {
-          final client = clientProvider.clients[index];
-          return ListTile(
-            title: Text(client.nom),
-            subtitle: Text(client.email),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.edit, color: Colors.blue),
-                  onPressed: () => _showEditClientDialog(context, client),
-                ),
-                IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red),
-                  onPressed:
-                      () => clientProvider.deleteClient(client.id, context),
-                ),
-              ],
+      appBar: AppBar(title: const Text("Gestion des Clients")),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              onChanged: (value) => setState(() => _searchQuery = value),
+              decoration: const InputDecoration(
+                labelText: 'Rechercher un client',
+                prefixIcon: Icon(Icons.search),
+              ),
             ),
-          );
-        },
+          ),
+          Expanded(
+            child:
+                clientProvider.isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : clientProvider.errorMessage != null
+                    ? Center(child: Text(clientProvider.errorMessage!))
+                    : ListView.builder(
+                      itemCount: filteredClients.length,
+                      itemBuilder: (context, index) {
+                        final client = filteredClients[index];
+                        return ListTile(
+                          title: Text(client.entreprise),
+                          subtitle: Text(client.nom),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.blue,
+                                ),
+                                onPressed:
+                                    () =>
+                                        _showEditClientDialog(context, client),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.details,
+                                  color: Colors.red,
+                                ),
+                                onPressed:
+                                    () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (_) => ClientInfoScreen(
+                                              client: client,
+                                            ),
+                                      ),
+                                    ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddClientDialog(context),
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
       bottomNavigationBar: CustomBottomNavigationBar(
-        onTabChange: (index) {
-          setState(() {
-            _currentPageIndex = index;
-          });
-        },
+        onTabChange: (index) => setState(() => _currentPageIndex = index),
         initialIndex: _currentPageIndex,
       ),
     );
   }
 
   void _showAddClientDialog(BuildContext context) {
-    _nomController.clear();
-    _emailController.clear();
-    _telephoneController.clear();
-    _entrepriseController.clear();
-    _adresseController.clear();
+    _clearForm();
+    _showClientDialog(context, isEditing: false);
+  }
 
+  void _showEditClientDialog(BuildContext context, Client client) {
+    _nomController.text = client.nom;
+    _emailController.text = client.email;
+    _telephoneController.text = client.telephone;
+    _adresseController.text = client.adresse ?? '';
+    _situationGeoController.text = client.situationGeographique;
+    _entrepriseController.text = client.entreprise;
+    _showClientDialog(context, isEditing: true, client: client);
+  }
+
+  void _showClientDialog(
+    BuildContext context, {
+    required bool isEditing,
+    Client? client,
+  }) {
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Ajouter un Client"),
-          content: Form(
-            // Wrap your Column with a Form
-            key: _formKey, // Associate the key
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  // Use TextFormField for validation
-                  controller: _nomController,
-                  decoration: InputDecoration(labelText: "Nom et Prénom"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer un nom.';
-                    }
-                    return null;
-                  },
+      builder:
+          (context) => AlertDialog(
+            title: Text(isEditing ? "Modifier Client" : "Ajouter un Client"),
+            content: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildTextField(_entrepriseController, "Entreprise"),
+                    _buildTextField(_nomController, "Nom Référent"),
+                    _buildTextField(_telephoneController, "Téléphone"),
+                    _buildTextField(_emailController, "Email"),
+                    _buildTextField(_adresseController, "Adresse"),
+                    _buildTextField(
+                      _situationGeoController,
+                      "Situation géographique",
+                    ),
+                  ],
                 ),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(labelText: "Email"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer un email.';
-                    }
-                    // You can add more sophisticated email validation here
-                    if (!value.contains('@')) {
-                      return 'Invalid email address';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _telephoneController,
-                  decoration: InputDecoration(labelText: "Téléphone"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer un numéro de téléphone.';
-                    }
-                    // Add phone number validation if needed
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _adresseController,
-                  decoration: InputDecoration(labelText: "Adresse"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer une adresse.';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _entrepriseController,
-                  decoration: InputDecoration(labelText: "Entreprise"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer un nom d\'entreprise.';
-                    }
-                    return null;
-                  },
-                ),
-              ],
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Annuler"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    isEditing
+                        ? _updateClient(context, client!)
+                        : _saveClient(context);
+                  }
+                },
+                child: Text(isEditing ? "Modifier" : "Ajouter"),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Annuler"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  // Check if the form is valid
-                  _saveClient(context);
-                }
-              },
-              child: Text("Ajouter"),
-            ),
-          ],
-        );
-      },
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(labelText: label),
+      validator:
+          (value) => value == null || value.isEmpty ? 'Champ requis' : null,
     );
   }
 
@@ -182,133 +215,45 @@ class _ClientsPageState extends State<ClientsPage> {
         email: _emailController.text,
         telephone: _telephoneController.text,
         entreprise: _entrepriseController.text,
+        situationGeographique: _situationGeoController.text,
         id: '',
         commercialId: currentUserId,
       );
 
-      final clientProvider = Provider.of<ClientProvider>(
+      await Provider.of<ClientProvider>(
         context,
         listen: false,
-      );
-      try {
-        await clientProvider.addClient(newClient, context);
-        Navigator.pop(context);
-      } catch (e) {
-        //Error is already handled by the client provider,
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Erreur : Utilisateur non connecté.")),
-      );
+      ).addClient(newClient, context);
+      Navigator.pop(context);
     }
   }
 
-  void _showEditClientDialog(BuildContext context, Client client) {
-    _nomController.text = client.nom;
-    _emailController.text = client.email;
-    _telephoneController.text = client.telephone;
-    _adresseController.text = client.adresse;
-    _entrepriseController.text = client.entreprise;
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Modifier Client"),
-          content: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: _nomController,
-                  decoration: InputDecoration(labelText: "Nom"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer un nom.';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(labelText: "Email"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer un email.';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Invalid email address';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _telephoneController,
-                  decoration: InputDecoration(labelText: "Téléphone"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer un numéro de téléphone.';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _adresseController,
-                  decoration: InputDecoration(labelText: "Adresse"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer une adresse.';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _entrepriseController,
-                  decoration: InputDecoration(labelText: "Entreprise"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer un nom d\'entreprise.';
-                    }
-                    return null;
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Annuler"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  final updatedClient = Client(
-                    id: client.id,
-                    nom: _nomController.text,
-                    email: _emailController.text,
-                    telephone: _telephoneController.text,
-                    adresse: _adresseController.text,
-                    entreprise: _entrepriseController.text,
-                    commercialId: client.commercialId,
-                  );
-                  final clientProvider = Provider.of<ClientProvider>(
-                    context,
-                    listen: false,
-                  );
-                  try {
-                    clientProvider.updateClient(updatedClient, context);
-                    Navigator.pop(context);
-                  } catch (e) {}
-                }
-              },
-              child: Text("Modifier"),
-            ),
-          ],
-        );
-      },
+  Future<void> _updateClient(BuildContext context, Client client) async {
+    final updatedClient = Client(
+      id: client.id,
+      nom: _nomController.text,
+      email: _emailController.text,
+      telephone: _telephoneController.text,
+      adresse: _adresseController.text,
+      situationGeographique: _situationGeoController.text,
+      entreprise: _entrepriseController.text,
+      commercialId: client.commercialId,
     );
+
+    await Provider.of<ClientProvider>(
+      context,
+      listen: false,
+    ).updateClient(updatedClient, context);
+    Navigator.pop(context);
+  }
+
+  void _clearForm() {
+    _nomController.clear();
+    _emailController.clear();
+    _telephoneController.clear();
+    _entrepriseController.clear();
+    _adresseController.clear();
+    _situationGeoController.clear();
   }
 
   @override
@@ -316,8 +261,11 @@ class _ClientsPageState extends State<ClientsPage> {
     _nomController.dispose();
     _emailController.dispose();
     _telephoneController.dispose();
-    _adresseController.dispose();
     _entrepriseController.dispose();
+    _adresseController.dispose();
+    _situationGeoController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 }
+ */

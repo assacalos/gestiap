@@ -6,6 +6,7 @@ import 'package:gestiap/features/technicien/views/pages/interventions/interventi
 import 'package:gestiap/features/technicien/views/pages/equipements/equipement_page.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:intl/intl.dart'; // Pour la mise en forme de la date
+import 'package:google_fonts/google_fonts.dart'; // Importez le package google_fonts
 
 class TechnicienDashboardPage extends StatefulWidget {
   @override
@@ -28,19 +29,40 @@ class _TechnicienDashboardPageState extends State<TechnicienDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tableau de Bord Technicien'),
+        title: const Text(
+          'Tableau de Bord Technicien',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.blue,
+        titleTextStyle: const TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: SingleChildScrollView(
-          // Ajout de SingleChildScrollView
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildPerformanceOverview(), // Aperçu des interventions
-              SizedBox(height: 20),
-              _buildQuickAccessGrid(), // Grille d'accès rapide
+              Text(
+                'Tableau de Bord Technicien',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Poppins',
+                  color: Colors.blue[800],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 30),
+              _buildPerformanceOverview(),
+              const SizedBox(height: 20),
+              _buildQuickAccessGrid(),
             ],
           ),
         ),
@@ -77,24 +99,28 @@ class _TechnicienDashboardPageState extends State<TechnicienDashboardPage> {
         children: <Widget>[
           Text(
             'Aperçu des interventions',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Poppins',
+            ),
           ),
           SizedBox(height: 10),
           Text(
             'Interventions en cours : $_interventionsEnCours',
-            style: TextStyle(fontSize: 16),
+            style: TextStyle(fontSize: 16, fontFamily: 'Roboto'),
           ),
           Text(
             'Interventions planifiées aujourd\'hui : $_interventionsPlanifieesAujourdhui',
-            style: TextStyle(fontSize: 16),
+            style: TextStyle(fontSize: 16, fontFamily: 'Roboto'),
           ),
           Text(
             'Interventions résolues cette semaine : $_interventionsResoluesCetteSemaine',
-            style: TextStyle(fontSize: 16),
+            style: TextStyle(fontSize: 16, fontFamily: 'Roboto'),
           ),
           Text(
             'Total interventions : $_totalInterventions',
-            style: TextStyle(fontSize: 16),
+            style: TextStyle(fontSize: 16, fontFamily: 'Roboto'),
           ),
           SizedBox(height: 15),
           Row(
@@ -142,20 +168,26 @@ class _TechnicienDashboardPageState extends State<TechnicienDashboardPage> {
             ),
           ],
         ),
-        width:
-            MediaQuery.of(context).size.width /
-            2.5, // Ajuster la largeur selon le besoin
+        width: MediaQuery.of(context).size.width / 2.5,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+                fontFamily: 'Roboto',
+              ),
             ),
             SizedBox(height: 4),
             Text(
               value,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Roboto',
+              ),
             ),
           ],
         ),
@@ -166,64 +198,71 @@ class _TechnicienDashboardPageState extends State<TechnicienDashboardPage> {
   // Méthode pour construire la grille d'accès rapide
   Widget _buildQuickAccessGrid() {
     return GridView.count(
-      shrinkWrap:
-          true, // Important pour utiliser dans une Column avec SingleChildScrollView
-      physics:
-          NeverScrollableScrollPhysics(), // Pour désactiver le défilement de la grille
-      crossAxisCount: 2, // Afficher les éléments sur 2 colonnes
-      childAspectRatio: 1.2, // Ajuster la hauteur des éléments
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      childAspectRatio: 1.2,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
       children: [
-        _buildDashboardItem(context, 'Interventions', Icons.build, () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => InterventionPage(), // Remplacez par votre page
-            ),
-          );
-        }),
+        _buildDashboardItem(
+          context,
+          'Interventions',
+          Icons.build,
+          Colors.orange,
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => InterventionPage()),
+            );
+          },
+        ),
         /*_buildDashboardItem(
           context,
           'Planification',
           Icons.calendar_today,
+          Colors.deepOrangeAccent,
+          () {
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(builder: (context) => PlanningPage()),
+            // );
+          },
+        ),*/
+        _buildDashboardItem(
+          context,
+          'Gestion des Stocks',
+          Icons.inventory,
+          Colors.amber,
           () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    PlanningPage(), // Remplacez par votre page
-              ),
+              MaterialPageRoute(builder: (context) => StockListPage()),
             );
           },
-        ),*/
-        _buildDashboardItem(context, 'Gestion des Stocks', Icons.inventory, () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => StockListPage()),
-          );
-        }),
-        _buildDashboardItem(context, 'Équipements', Icons.devices, () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EquipementPage(),
-            ), // Remplacez par votre page
-          );
-        }),
+        ),
+        _buildDashboardItem(
+          context,
+          'Équipements',
+          Icons.devices,
+          Colors.deepOrange,
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => EquipementPage()),
+            );
+          },
+        ),
         /*_buildDashboardItem(
           context,
           'Base de Connaissances',
           Icons.library_books,
+          Colors.orangeAccent,
           () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    BaseConnaissancesPage(), // Facultatif, Remplacez par votre page
-              ),
-            );
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(builder: (context) => BaseConnaissancesPage()),
+            // );
           },
         ),*/
       ],
@@ -235,6 +274,7 @@ class _TechnicienDashboardPageState extends State<TechnicienDashboardPage> {
     BuildContext context,
     String title,
     IconData icon,
+    Color iconColor,
     VoidCallback onTap,
   ) {
     return InkWell(
@@ -256,11 +296,15 @@ class _TechnicienDashboardPageState extends State<TechnicienDashboardPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 40, color: Colors.orange), // Couleur orange
+            Icon(icon, size: 40, color: iconColor),
             SizedBox(height: 8),
             Text(
               title,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Poppins',
+              ),
               textAlign: TextAlign.center,
             ),
           ],

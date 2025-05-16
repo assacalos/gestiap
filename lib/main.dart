@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:gestiap/features/comptable/providers/etat_financier_provider.dart';
+import 'package:gestiap/features/comptable/providers/impot_taxe_provider.dart';
+import 'package:gestiap/features/comptable/providers/paiement_provider.dart';
 import 'package:gestiap/features/patron/views/rapport_intervention_patron.dart';
 import 'package:gestiap/features/rh/providers/conge_provider.dart';
 import 'package:gestiap/features/rh/providers/employe_provider.dart';
@@ -16,6 +19,7 @@ import 'package:gestiap/core/services/auth_service.dart';
 import '../views/auth/login_screen.dart';
 import '../views/admin/admin_dashboard.dart';
 import '../views/splash_screen.dart';
+import 'package:gestiap/views/auth_check.dart'; // Importez le nouveau AuthCheck
 import 'package:gestiap/views/home_screen.dart';
 import 'package:gestiap/features/commercial/views/pages/commercial_dashboard_page.dart';
 import 'package:gestiap/features/patron/views/patron_dashboard_page.dart';
@@ -73,8 +77,12 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => ChargesProvider()),
         ChangeNotifierProvider(create: (context) => EmployeProvider()),
         ChangeNotifierProvider(create: (context) => CongeProvider()),
+        ChangeNotifierProvider(create: (context) => ImpotTaxeProvider()),
+        ChangeNotifierProvider(create: (context) => EtatFinancierProvider()),
         ChangeNotifierProvider(create: (context) => EquipementProvider()),
         ChangeNotifierProvider(create: (context) => InterventionProvider()),
+        ChangeNotifierProvider(create: (context) => PaymentProvider()),
+
         ChangeNotifierProvider(
           create: (context) => RapportInterventionProvider(),
         ),

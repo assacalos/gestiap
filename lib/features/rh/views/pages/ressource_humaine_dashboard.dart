@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:gestiap/core/widgets/widgets_widgets.dart'; // Assurez-vous que le chemin d'accès est correct
+import 'package:gestiap/features/rh/views/pages/conges/conge_page.dart';
+import 'package:gestiap/features/rh/views/pages/employes/employe_page.dart';
 //import 'package:gestiap/features/rh/views/pages/employes_liste_page.dart'; // Assurez-vous que le chemin d'accès est correct
 //import 'package:gestiap/features/rh/views/pages/conges_liste_page.dart'; // Assurez-vous que le chemin d'accès est correct
 //import 'package:gestiap/features/rh/views/pages/formations_liste_page.dart'; // Assurez-vous que le chemin d'accès est correct
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:intl/intl.dart'; // Pour la mise en forme de la date
+import 'package:google_fonts/google_fonts.dart'; // Importez le package google_fonts
 
 class RhDashboardPage extends StatefulWidget {
   @override
@@ -25,17 +28,41 @@ class _RhDashboardPageState extends State<RhDashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Tableau de Bord RH'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text(
+          'Tableau de Bord RH',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.blue,
+        titleTextStyle: const TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: SingleChildScrollView(
-          // Pour permettre le défilement
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildPerformanceOverview(), // Aperçu des RH
-              SizedBox(height: 20),
-              _buildQuickAccessGrid(), // Grille d'accès rapide
+              Text(
+                'Tableau de Bord RH',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Poppins',
+                  color: Colors.blue[800],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 30),
+              _buildPerformanceOverview(),
+              const SizedBox(height: 20),
+              _buildQuickAccessGrid(),
             ],
           ),
         ),
@@ -56,7 +83,7 @@ class _RhDashboardPageState extends State<RhDashboardPage> {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.purple[100], // Couleur thème RH
+        color: Colors.purple[100],
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
@@ -72,24 +99,28 @@ class _RhDashboardPageState extends State<RhDashboardPage> {
         children: <Widget>[
           Text(
             'Aperçu des Ressources Humaines',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Poppins',
+            ),
           ),
           SizedBox(height: 10),
           Text(
             'Nombre total d\'employés : $_nombreEmployes',
-            style: TextStyle(fontSize: 16),
+            style: TextStyle(fontSize: 16, fontFamily: 'Roboto'),
           ),
           Text(
             'Congés en cours : $_congesEnCours',
-            style: TextStyle(fontSize: 16),
+            style: TextStyle(fontSize: 16, fontFamily: 'Roboto'),
           ),
           Text(
             'Formations planifiées ce mois : $_formationsPlanifieesCeMois',
-            style: TextStyle(fontSize: 16),
+            style: TextStyle(fontSize: 16, fontFamily: 'Roboto'),
           ),
           Text(
             'Nouveaux employés ce mois : $_nouveauxEmployesCeMois',
-            style: TextStyle(fontSize: 16),
+            style: TextStyle(fontSize: 16, fontFamily: 'Roboto'),
           ),
           SizedBox(height: 15),
           Row(
@@ -127,20 +158,26 @@ class _RhDashboardPageState extends State<RhDashboardPage> {
             ),
           ],
         ),
-        width:
-            MediaQuery.of(context).size.width /
-            2.5, // Ajuster la largeur selon le besoin
+        width: MediaQuery.of(context).size.width / 2.5,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+                fontFamily: 'Roboto',
+              ),
             ),
             SizedBox(height: 4),
             Text(
               value,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Roboto',
+              ),
             ),
           ],
         ),
@@ -158,33 +195,51 @@ class _RhDashboardPageState extends State<RhDashboardPage> {
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
       children: [
-        _buildDashboardItem(context, 'Employés', Icons.people, () {
-          /*Navigator.push(
+        _buildDashboardItem(
+          context,
+          'Employés',
+          Icons.people,
+          Colors.purple,
+          () {
+            Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => EmployesListPage(),
-              ),
-            );*/
-        }),
-        _buildDashboardItem(context, 'Congés', Icons.date_range, () {
-          /*Navigator.push(
+              MaterialPageRoute(builder: (context) => EmployePage()),
+            );
+          },
+        ),
+        _buildDashboardItem(
+          context,
+          'Congés',
+          Icons.date_range,
+          Colors.indigo,
+          () {
+            Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => CongesListPage(),
-              ),
-            );*/
-        }),
-        _buildDashboardItem(context, 'Formations', Icons.school, () {
-          /*Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FormationsListPage(),
-              ),
-            );*/
-        }),
-        _buildDashboardItem(context, 'Recrutement', Icons.person_add, () {
-          // Navigator.push(context, MaterialPageRoute(builder: (context) => RecrutementPage()),);
-        }),
+              MaterialPageRoute(builder: (context) => CongePage()),
+            );
+          },
+        ),
+        _buildDashboardItem(
+          context,
+          'Formations',
+          Icons.school,
+          Colors.blueAccent,
+          () {
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(builder: (context) => FormationsListPage()),
+            // );
+          },
+        ),
+        _buildDashboardItem(
+          context,
+          'Recrutement',
+          Icons.person_add,
+          Colors.green,
+          () {
+            // Navigator.push(context, MaterialPageRoute(builder: (context) => RecrutementPage()),);
+          },
+        ),
       ],
     );
   }
@@ -194,6 +249,7 @@ class _RhDashboardPageState extends State<RhDashboardPage> {
     BuildContext context,
     String title,
     IconData icon,
+    Color iconColor,
     VoidCallback onTap,
   ) {
     return InkWell(
@@ -215,11 +271,15 @@ class _RhDashboardPageState extends State<RhDashboardPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 40, color: Colors.purple), // Couleur pour RH
+            Icon(icon, size: 40, color: iconColor),
             SizedBox(height: 8),
             Text(
               title,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Poppins',
+              ),
               textAlign: TextAlign.center,
             ),
           ],

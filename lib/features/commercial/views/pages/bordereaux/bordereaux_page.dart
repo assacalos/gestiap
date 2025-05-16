@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:open_file/open_file.dart';
 import 'bordereaux_form.dart'; // Assurez-vous que le chemin est correct
@@ -43,17 +45,30 @@ class _BordereauxPageState extends State<BordereauxPage> {
     BordereauModel bordereau,
   ) async {
     try {
-      final file = await BordereauPdfGenerator.generatePdf(bordereau);
+      // Récupérer les octets du PDF
+      final pdfBytes = await BordereauPdfGenerator.generatePdf(bordereau);
+
+      // Créer un fichier temporaire pour stocker le PDF
+      final outputDir = await getTemporaryDirectory();
+      final filePath = '${outputDir.path}/bordereau_${bordereau.id}.pdf';
+      final file = File(filePath);
+
+      // Écrire les octets dans le fichier
+      await file.writeAsBytes(pdfBytes);
+
+      // Afficher une notification de succès
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('PDF généré : ${file.path}')));
+
+      // Ouvrir le fichier PDF
       await OpenFile.open(file.path);
     } catch (e) {
-      // Gestion des erreurs lors de la génération du PDF
+      // Gestion des erreurs
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors de la génération du PDF: $e')),
       );
-      print('Error generating PDF: $e'); // Log l'erreur
+      print('Error generating PDF: $e');
     }
   }
 
@@ -104,7 +119,8 @@ class _BordereauxPageState extends State<BordereauxPage> {
                 final filteredBordereaux =
                     provider.bordereaux.where((bordereau) {
                       final intitule = bordereau.intitule.toLowerCase();
-                      final clientName = bordereau.clientName.toLowerCase();
+                      final clientName =
+                          bordereau.clientEntreprise.toLowerCase();
                       return intitule.contains(searchQuery) ||
                           clientName.contains(searchQuery);
                     }).toList();
@@ -142,7 +158,7 @@ class _BordereauxPageState extends State<BordereauxPage> {
     final Map<String, List<BordereauModel>> grouped = {};
     for (var bordereau in bordereaux) {
       final key =
-          "${bordereau.clientName} - ${bordereau.dateLivraison.month}/${bordereau.dateLivraison.year}";
+          "${bordereau.clientEntreprise} - ${bordereau.dateLivraison.month}/${bordereau.dateLivraison.year}";
       grouped.putIfAbsent(key, () => []).add(bordereau);
     }
 
@@ -177,7 +193,7 @@ class _BordereauxPageState extends State<BordereauxPage> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Client : ${bordereau.clientName}'),
+            Text('Client : ${bordereau.clientEntreprise}'),
             Text('Livraison : ${bordereau.dateLivraison.toLocal()}'),
             Text('Articles : ${bordereau.articles.length}'),
             Text('État : ${bordereau.etatLivraison}'),

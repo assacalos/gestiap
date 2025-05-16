@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gcm_defaultSenderId" translatable="false">851084454779</string>
+    <string name="google_api_key" translatable="false">AIzaSyACptSa1VgRAdAyVpiQNak_KGN-DfO7Amc</string>
+    <string name="google_app_id" translatable="false">1:851084454779:android:73fa2a45052108fb8b2bde</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyACptSa1VgRAdAyVpiQNak_KGN-DfO7Amc</string>
+    <string name="google_storage_bucket" translatable="false">gestiapbd.firebasestorage.app</string>
+    <string name="project_id" translatable="false">gestiapbd</string>
+</resources>

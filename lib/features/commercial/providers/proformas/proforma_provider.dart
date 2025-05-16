@@ -69,6 +69,31 @@ class QuoteProvider with ChangeNotifier {
     }
   }
 
+  Future<void> loadAllQuotes() async {
+    _errorMessage = null;
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _quoteService.getAllQuotesStream().listen(
+        (quoteList) {
+          _quotes = quoteList;
+          _isLoading = false;
+          notifyListeners();
+        },
+        onError: (error) {
+          _errorMessage = "Erreur lors du chargement : $error";
+          _isLoading = false;
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      _errorMessage = "Erreur inattendue : $e";
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   // Ajouter un nouveau devis
   Future<void> addQuote(QuoteModel quote) async {
     try {
@@ -85,7 +110,7 @@ class QuoteProvider with ChangeNotifier {
         );
       }
       await _quoteService.addQuote(quote);
-      _quotes.add(quote);
+      // _quotes.add(quote);
       notifyListeners();
     } catch (e) {
       _errorMessage = "Failed to add quote: $e";

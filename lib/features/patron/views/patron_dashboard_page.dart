@@ -7,6 +7,7 @@ import 'package:gestiap/features/commercial/views/pages/proforma/status_Proforma
 import 'package:gestiap/features/commercial/providers/clients/clients_provider.dart';
 import 'package:gestiap/features/commercial/providers/proformas/proforma_provider.dart';
 import 'package:gestiap/features/patron/views/bordereaux/liste_status_bordereaux_patron.dart';
+import 'package:gestiap/features/patron/views/clients/client_status_patron.dart';
 import 'package:gestiap/features/patron/views/proforma/liste_status_proforma_patron.dart';
 import 'package:provider/provider.dart';
 import 'package:gestiap/features/commercial/providers/bordereaux/bordereaux_provider.dart';
@@ -133,7 +134,9 @@ class _PatronDashboardPageState extends State<PatronDashboardPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ClientsPage(), // Exemple de page
+                  builder:
+                      (context) =>
+                          ClientProformaDashboardPage(), // Exemple de page
                 ),
               );
             },
@@ -158,14 +161,8 @@ class _PatronDashboardPageState extends State<PatronDashboardPage> {
         _buildDashboardItem(context, 'Clients', Icons.people, () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => ClientsPage()),
-          );
-        }),
-        _buildDashboardItem(context, 'Bordereaux', Icons.assignment, () {
-          Navigator.push(
-            context,
             MaterialPageRoute(
-              builder: (context) => PatronBordereauxDashboardPage(),
+              builder: (context) => ClientProformaDashboardPage(),
             ),
           );
         }),
@@ -177,6 +174,15 @@ class _PatronDashboardPageState extends State<PatronDashboardPage> {
             ),
           );
         }),
+        _buildDashboardItem(context, 'Bordereaux', Icons.assignment, () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PatronBordereauxDashboardPage(),
+            ),
+          );
+        }),
+
         _buildDashboardItem(
           context,
           'Factures',

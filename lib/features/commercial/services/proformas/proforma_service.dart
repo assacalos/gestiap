@@ -114,4 +114,16 @@ class QuoteService {
               .toList();
         });
   }
+
+  Stream<List<QuoteModel>> getAllQuotesStream() {
+    return _firestore
+        .collection(_collectionName) // Utilisez _firestore
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs
+                  .map((doc) => QuoteModel.fromFirestore(doc)) // Include doc.id
+                  .toList(),
+        );
+  }
 }

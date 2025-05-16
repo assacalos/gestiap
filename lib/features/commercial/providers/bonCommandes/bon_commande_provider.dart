@@ -52,7 +52,7 @@ class BonDeCommandeProvider extends ChangeNotifier {
               .collection('bonsDeCommande')
               .where(
                 'status',
-                isEqualTo: BonDeCommandeModel.statusSoumisPatron,
+                isEqualTo: BonDeCommandeModel.statusPendingValidation,
               ) // Filtrer par statut
               .get();
       _bonsDeCommande =
@@ -83,9 +83,9 @@ class BonDeCommandeProvider extends ChangeNotifier {
         status:
             bonDeCommande.acompteRecu < totalProforma
                 ? BonDeCommandeModel
-                    .statusSoumisPatron // Soumis pour validation si acompte incomplet
+                    .statusPendingValidation // Soumis pour validation si acompte incomplet
                 : BonDeCommandeModel
-                    .statusValide, // Validé automatiquement si acompte total
+                    .statusValidated, // Validé automatiquement si acompte total
       );
       try {
         final docRef = await _firestore.collection('bonsDeCommande').add({
@@ -109,8 +109,8 @@ class BonDeCommandeProvider extends ChangeNotifier {
     final updatedBonDeCommande = bonDeCommande.copyWith(
       status:
           bonDeCommande.acompteRecu < totalProforma
-              ? BonDeCommandeModel.statusSoumisPatron
-              : BonDeCommandeModel.statusValide,
+              ? BonDeCommandeModel.statusPendingValidation
+              : BonDeCommandeModel.statusValidated,
     );
     try {
       await _firestore
@@ -131,12 +131,12 @@ class BonDeCommandeProvider extends ChangeNotifier {
   Future<void> validerBonDeCommandeParPatron(String bonDeCommandeId) async {
     try {
       await _firestore.collection('bonsDeCommande').doc(bonDeCommandeId).update(
-        {'status': BonDeCommandeModel.statusValide},
+        {'status': BonDeCommandeModel.statusValidated},
       );
       final index = _bonsDeCommande.indexWhere((b) => b.id == bonDeCommandeId);
       if (index != -1) {
         _bonsDeCommande[index] = _bonsDeCommande[index].copyWith(
-          status: BonDeCommandeModel.statusValide,
+          status: BonDeCommandeModel.statusValidated,
         );
         notifyListeners();
       }
@@ -152,16 +152,17 @@ class BonDeCommandeProvider extends ChangeNotifier {
     String commentaire,
   ) async {
     try {
-      await _firestore.collection('bonsDeCommande').doc(bonDeCommandeId).update(
-        {
-          'status': BonDeCommandeModel.statusRejete,
-          'commentairePatron': commentaire,
-        },
-      );
+      await _firestore
+          .collection('bonsDeCommande')
+          .doc(bonDeCommandeId)
+          .update({
+            'status': BonDeCommandeModel.statusRejected,
+            'commentairePatron': commentaire,
+          });
       final index = _bonsDeCommande.indexWhere((b) => b.id == bonDeCommandeId);
       if (index != -1) {
         _bonsDeCommande[index] = _bonsDeCommande[index].copyWith(
-          status: BonDeCommandeModel.statusRejete,
+          status: BonDeCommandeModel.statusRejected,
           commentairePatron: commentaire,
         );
         notifyListeners();
@@ -184,7 +185,7 @@ class BonDeCommandeProvider extends ChangeNotifier {
             documentScanneUrl: null,
             acompteRecu: 0.0,
             createdAt: DateTime.now(),
-            status: BonDeCommandeModel.statusDraft,
+            status: BonDeCommandeModel.statusPendingValidation,
           ),
     );
   }

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:gestiap/features/commercial/providers/proformas/proforma_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:gestiap/core/widgets/widgets_widgets.dart'; // Assurez-vous que ce chemin est correct
 import 'package:gestiap/features/commercial/views/pages/proforma/liste_Proforma_page.dart'; // Assurez-vous que ce chemin est correct
 import 'package:gestiap/features/commercial/data/models/proforma_model.dart'; // Assurez-vous que ce chemin est correct
 import 'package:gestiap/features/patron/views/proforma/proforma_attente_patron.dart'; // Assurez-vous que ce chemin est correct
+import 'package:gestiap/features/patron/views/proforma/proforma_rejected_patron.dart';
+import 'package:gestiap/features/patron/views/proforma/proforma_validated_patron.dart';
 import 'package:google_fonts/google_fonts.dart'; // Importez le package google_fonts
 
 class PatronProformaDashboardPage extends StatefulWidget {
@@ -60,7 +64,7 @@ class _PatronProformaDashboardPageState
                   MaterialPageRoute(
                     builder:
                         (context) =>
-                            const PendingProformaList(), // Utilisez le widget correct
+                            const PendingQuotesList(), // Utilisez le widget correct
                   ),
                 );
               },
@@ -76,11 +80,7 @@ class _PatronProformaDashboardPageState
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder:
-                        (context) => ListeProformaPage(
-                          status: QuoteModel.statusValidated,
-                          devis: [],
-                        ),
+                    builder: (context) => const ProformaValideePatron(),
                   ),
                 );
               },
@@ -96,11 +96,7 @@ class _PatronProformaDashboardPageState
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder:
-                        (context) => ListeProformaPage(
-                          status: QuoteModel.statusRejected,
-                          devis: [],
-                        ),
+                    builder: (context) => const RejectedProformasList(),
                   ),
                 );
               },

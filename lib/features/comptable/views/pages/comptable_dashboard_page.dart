@@ -13,6 +13,7 @@ import 'package:gestiap/features/comptable/views/pages/budget_liste_page.dart';
 //import 'package:gestiap/features/comptabilite/views/pages/immobilisations_page.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:intl/intl.dart'; // Pour la mise en forme de la monnaie et des dates
+import 'package:google_fonts/google_fonts.dart'; // Importez le package google_fonts
 
 class ComptabiliteDashboardPage extends StatefulWidget {
   @override
@@ -36,19 +37,40 @@ class _ComptabiliteDashboardPageState extends State<ComptabiliteDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tableau de Bord Comptabilité'),
+        title: const Text(
+          'Tableau de Bord Comptabilité',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.blue,
+        titleTextStyle: const TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0), // Augmentation du padding
         child: SingleChildScrollView(
-          // Ajout de SingleChildScrollView pour éviter les problèmes de dépassement
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildFinancialOverview(), // Aperçu financier
-              SizedBox(height: 20),
-              _buildQuickAccessGrid(), // Grille d'accès rapide
+              Text(
+                'Tableau de Bord Comptable',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Poppins',
+                  color: Colors.blue[800],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 30),
+              _buildFinancialOverview(), // Aperçu financier stylisé
+              const SizedBox(height: 20),
+              _buildQuickAccessGrid(), // Grille d'accès rapide stylisée
             ],
           ),
         ),
@@ -64,9 +86,8 @@ class _ComptabiliteDashboardPageState extends State<ComptabiliteDashboardPage> {
     );
   }
 
-  // Méthode pour construire l'aperçu financier
+  // Méthode pour construire l'aperçu financier stylisé
   Widget _buildFinancialOverview() {
-    // Utilisation de NumberFormat pour formater la devise
     final numberFormat = NumberFormat.currency(
       name: _currency,
       symbol: _currency,
@@ -92,26 +113,30 @@ class _ComptabiliteDashboardPageState extends State<ComptabiliteDashboardPage> {
         children: <Widget>[
           Text(
             'Aperçu Financier',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Poppins',
+            ),
           ),
           SizedBox(height: 10),
           Text(
             'Revenu total du mois : ${numberFormat.format(_totalRevenue)}',
-            style: TextStyle(fontSize: 16),
+            style: TextStyle(fontSize: 16, fontFamily: 'Roboto'),
           ),
           Text(
             'Dépenses totales du mois : ${numberFormat.format(_totalExpenses)}',
-            style: TextStyle(fontSize: 16),
+            style: TextStyle(fontSize: 16, fontFamily: 'Roboto'),
           ),
           Text(
             'Bénéfice net (estimation) : ${numberFormat.format(_netProfit)}',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
+              fontFamily: 'Roboto',
               color: _netProfit >= 0 ? Colors.green : Colors.red,
             ),
           ),
-          // Ajoutez ici des indicateurs financiers clés pertinents
           SizedBox(height: 15),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -127,7 +152,7 @@ class _ComptabiliteDashboardPageState extends State<ComptabiliteDashboardPage> {
                 "Paiements en attente",
                 "5",
                 () {},
-              ), // Exemple
+              ),
             ],
           ),
         ],
@@ -135,7 +160,7 @@ class _ComptabiliteDashboardPageState extends State<ComptabiliteDashboardPage> {
     );
   }
 
-  // Widget pour construire les cartes récapitulatives financières
+  // Widget pour construire les cartes récapitulatives financières stylisées
   Widget _buildFinancialSummaryCard(
     BuildContext context,
     String title,
@@ -158,20 +183,26 @@ class _ComptabiliteDashboardPageState extends State<ComptabiliteDashboardPage> {
             ),
           ],
         ),
-        width:
-            MediaQuery.of(context).size.width /
-            2.5, // Ajuster la largeur selon le besoin
+        width: MediaQuery.of(context).size.width / 2.5,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+                fontFamily: 'Roboto',
+              ),
             ),
             SizedBox(height: 4),
             Text(
               value,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Roboto',
+              ),
             ),
           ],
         ),
@@ -179,13 +210,11 @@ class _ComptabiliteDashboardPageState extends State<ComptabiliteDashboardPage> {
     );
   }
 
-  // Méthode pour construire la grille d'accès rapide
+  // Méthode pour construire la grille d'accès rapide stylisée
   Widget _buildQuickAccessGrid() {
     return GridView.count(
-      shrinkWrap:
-          true, // Important pour utiliser dans une Column avec SingleChildScrollView
-      physics:
-          NeverScrollableScrollPhysics(), // Pour désactiver le défilement de la grille
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
       childAspectRatio: 1.2,
       crossAxisSpacing: 16,
@@ -195,6 +224,7 @@ class _ComptabiliteDashboardPageState extends State<ComptabiliteDashboardPage> {
           context,
           'Gestion des Factures',
           Icons.receipt_long,
+          Colors.blue, // Couleur bleue pour les factures
           () {
             Navigator.push(
               context,
@@ -206,6 +236,7 @@ class _ComptabiliteDashboardPageState extends State<ComptabiliteDashboardPage> {
           context,
           'Gestion des Charges',
           Icons.money_off,
+          Colors.redAccent, // Couleur rouge pour les charges/dépenses
           () {
             Navigator.push(
               context,
@@ -213,111 +244,79 @@ class _ComptabiliteDashboardPageState extends State<ComptabiliteDashboardPage> {
             );
           },
         ),
-        /*_buildDashboardItem(
+        _buildDashboardItem(
           context,
           'Gestion des Paiements',
           Icons.payments,
+          Colors.green, // Couleur verte pour les paiements
           () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    PaiementsPage(), // Remplacez par votre page de paiements
+                builder: (context) => PaymentListScreen(employeId: ''),
               ),
             );
           },
-        ),*/
-        /*_buildDashboardItem(
+        ),
+        _buildDashboardItem(
           context,
-          'Rapprochement Bancaire',
-          Icons.account_balance,
+          'Impôts et Taxes',
+          Icons.attach_money,
+          Colors.orange, // Couleur orange pour les impôts
           () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    RapprochementBancairePage(), // Remplacez par votre page
-              ),
+              MaterialPageRoute(builder: (context) => ImpotTaxePage()),
             );
           },
-        ),*/
-        _buildDashboardItem(context, 'Impôts et Taxes', Icons.attach_money, () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ImpotTaxePage(), // Remplacez par votre page
-            ),
-          );
-        }),
-        _buildDashboardItem(context, 'États Financiers', Icons.assessment, () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => EtatFinancierPage(), // Remplacez par votre page
-            ),
-          );
-        }),
-        _buildDashboardItem(context, 'Budgets', Icons.show_chart, () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => BudgetsPage(),
-            ), // Remplacez par votre page
-          );
-        }),
+        ),
+        _buildDashboardItem(
+          context,
+          'États Financiers',
+          Icons.assessment,
+          Colors.purple, // Couleur violette pour les états financiers
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => EtatFinancierPage()),
+            );
+          },
+        ),
+        _buildDashboardItem(
+          context,
+          'Budgets',
+          Icons.show_chart,
+          Colors.teal, // Couleur teal pour les budgets
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => BudgetsPage()),
+            );
+          },
+        ),
         _buildDashboardItem(
           context,
           'Gestion des Fournisseurs',
           Icons.local_shipping,
+          Colors.indigo, // Couleur indigo pour les fournisseurs
           () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => FournisseursPage(),
-              ), // Remplacez par votre page
+              MaterialPageRoute(builder: (context) => FournisseursPage()),
             );
           },
         ),
-        // Choisissez une icône appropriée()
-        /*_buildDashboardItem(
-          context,
-          'Analyses et Rapports',
-          Icons.analytics,
-          () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    AnalysesRapportsPage(), // Remplacez par votre page
-              ),
-            );
-          },
-        ),*/
-        /*_buildDashboardItem(
-          context,
-          'Gestion des Immobilisations',
-          Icons.business,
-          () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    ImmobilisationsPage(), // Remplacez par votre page
-              ),
-            );
-          },
-        ),*/
-        // Ajoutez d'autres éléments ici
+        // Vous pouvez ajouter d'autres éléments ici
       ],
     );
   }
 
-  // Méthode pour construire chaque élément de la grille
+  // Méthode pour construire chaque élément de la grille stylisée
   Widget _buildDashboardItem(
     BuildContext context,
     String title,
     IconData icon,
+    Color iconColor, // Ajout de la couleur de l'icône
     VoidCallback onTap,
   ) {
     return InkWell(
@@ -342,12 +341,16 @@ class _ComptabiliteDashboardPageState extends State<ComptabiliteDashboardPage> {
             Icon(
               icon,
               size: 40,
-              color: Colors.blue,
-            ), // Couleur bleue pour l'icône
+              color: iconColor, // Utilisation de la couleur passée en paramètre
+            ),
             SizedBox(height: 8),
             Text(
               title,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Poppins',
+              ),
               textAlign: TextAlign.center,
             ),
           ],

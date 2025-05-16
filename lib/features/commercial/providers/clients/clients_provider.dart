@@ -1,95 +1,120 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:gestiap/core/services/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:gestiap/features/commercial/data/models/client_model.dart';
-import 'package:gestiap/core/constants/app_constants.dart';
-import 'package:gestiap/core/widgets/widgets_widgets.dart';
-import 'package:gestiap/providers/auth_provider.dart';
+import 'package:gestiap/core/services/auth_service.dart';
 import 'package:gestiap/features/commercial/services/clients/client_service.dart';
+import 'package:provider/provider.dart';
 import 'package:gestiap/features/commercial/data/models/client_model.dart';
+import 'package:gestiap/features/commercial/data/models/proforma_model.dart';
+import 'package:gestiap/features/commercial/services/proformas/proforma_service.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:gestiap/providers/auth_provider.dart';
 
 class ClientProvider with ChangeNotifier {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final ClientService _clientService = ClientService(); // Utilisez le service
-
+  final ClientService _clientService = ClientService();
   List<Client> _clients = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+  final AuthService _authService = AuthService();
 
   List<Client> get clients => _clients;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
-  ClientProvider();
-
-  // Charger les clients depuis Firestore en utilisant le service
-  void loadClients() {
-    _clientService.getClients().listen((clientsData) {
-      _clients = clientsData;
-      notifyListeners();
-    });
+  ClientProvider() {
+    loadClientsByRole();
   }
 
-  Future<void> getClients() async {
-    try {
-      // Écouter le stream et mettre à jour la liste lorsqu'il émet une valeur.
-      _clientService.getClients().listen((clientList) {
-        _clients = clientList;
-        notifyListeners();
-      });
-    } catch (error) {
-      print("Error fetching clients: $error");
-      rethrow;
+  Future<void> loadClients() async {
+    _loadClients();
+  }
+
+  Future<void> loadClientsByRole() async {
+    final role = await _authService.getUserRole();
+    if (role == 'patron') {
+      await loadAllClients();
+    } else {
+      await loadClients(); // pour commercial
     }
   }
 
-  // Ajouter un client en utilisant le service
-  Future<void> addClient(Client client, BuildContext context) async {
+  Future<void> _loadClients() async {
+    _errorMessage = null;
+    _isLoading = true;
+    notifyListeners();
     try {
-      final authProvider = Provider.of<AppAuthProvider>(context, listen: false);
-      final currentUserId = authProvider.user?.uid;
-
+      final currentUserId = _authService.currentUser?.uid;
       if (currentUserId == null) {
-        throw Exception("Utilisateur non connecté.");
+        _errorMessage = "Utilisateur non connecté.";
+        _isLoading = false;
+        notifyListeners();
+        return;
       }
+      _clientService
+          .getClientsStreamByCommercialId(currentUserId)
+          .listen(
+            (clientList) {
+              _clients = clientList;
+              _isLoading = false;
+              notifyListeners();
+            },
+            onError: (error) {
+              _errorMessage = "Erreur lors du chargement des clients: $error";
+              _isLoading = false;
+              notifyListeners();
+            },
+          );
+    } catch (e) {
+      _errorMessage = "Failed to load clients: $e";
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
-      // IMPORTANT : Vérifier que le commercialId du client correspond à l'utilisateur connecté
-      if (client.commercialId != currentUserId) {
-        throw Exception(
-          "Un commercial ne peut ajouter un client qu'à lui-même.",
-        );
-      }
+  Future<void> loadAllClients() async {
+    _errorMessage = null;
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _clientService.getAllClientsStream().listen(
+        (clientList) {
+          _clients = clientList;
+          _isLoading = false;
+          notifyListeners();
+        },
+        onError: (error) {
+          _errorMessage = "Erreur lors du chargement : $error";
+          _isLoading = false;
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      _errorMessage = "Erreur inattendue : $e";
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> addClient(Client client) async {
+    try {
+      final currentUserId = _authService.currentUser?.uid;
 
       await _clientService.addClient(client);
-      _clients.add(client);
+
       notifyListeners();
-    } catch (error) {
-      // Gérer l'erreur (afficher un SnackBar, journaliser, etc.)
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors de l\'ajout du client: $error'),
-          duration: Duration(seconds: 5),
-        ),
-      );
+    } catch (e) {
+      _errorMessage = "Failed to add client: $e";
+      notifyListeners();
       rethrow;
     }
   }
 
-  // Modifier un client en utilisant le service
-  Future<void> updateClient(Client client, BuildContext context) async {
+  Future<void> updateClient(Client client) async {
     try {
-      final authProvider = Provider.of<AppAuthProvider>(context, listen: false);
-      final currentUserId = authProvider.user?.uid;
-
-      if (currentUserId == null) {
-        throw Exception("Utilisateur non connecté.");
-      }
-
-      // Récupérer le client actuel depuis la base de données pour vérifier le commercialId
-      final existingClient = await _clientService.getClientsById(
-        client.id,
-      ); // Ajoute cette méthode dans ClientService
-      if (existingClient.commercialId != currentUserId) {
-        throw Exception(
-          "Un commercial ne peut modifier que ses propres clients.",
-        );
+      final currentUserId = _authService.currentUser?.uid;
+      final existingClient = await _clientService.getClientById(client.id);
+      if (existingClient == null) {
+        throw Exception("Client non trouvé.");
       }
 
       await _clientService.updateClient(client);
@@ -98,52 +123,95 @@ class ClientProvider with ChangeNotifier {
         _clients[index] = client;
         notifyListeners();
       }
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors de la modification du client: $error'),
-          duration: Duration(seconds: 5),
-        ),
-      );
-      rethrow;
-    }
-  }
-
-  // Supprimer un client en utilisant le service
-  Future<void> deleteClient(String clientId, BuildContext context) async {
-    // Add context
-    try {
-      final authProvider = Provider.of<AppAuthProvider>(context, listen: false);
-      final currentUserId = authProvider.user?.uid;
-
-      if (currentUserId == null) {
-        throw Exception("Utilisateur non connecté.");
-      }
-      final clientToDelete = await _clientService.getClientsById(
-        clientId,
-      ); //Implement this in service
-      if (clientToDelete.commercialId != currentUserId) {
-        throw Exception(
-          "Un commercial ne peut supprimer que ses propres clients.",
-        );
-      }
-
-      await _clientService.deleteClient(clientId);
-      _clients.removeWhere((client) => client.id == clientId);
+    } catch (e) {
+      _errorMessage = "Failed to update client: $e";
       notifyListeners();
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors de la suppression du client: $error'),
-          duration: Duration(seconds: 5),
-        ),
-      );
       rethrow;
     }
   }
 
-  // Obtenir tous les clients
-  List<Client> getAllClients() {
-    return _clients;
+  Future<void> deleteClient(String clientId) async {
+    try {
+      final currentUserId = _authService.currentUser?.uid;
+
+      final clientToDelete = await _clientService.getClientById(clientId);
+      if (clientToDelete == null) {
+        throw Exception("Client non trouvé.");
+      }
+      await _clientService.deleteClient(clientId);
+      _clients.removeWhere((c) => c.id == clientId);
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = "Failed to delete client: $e";
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  // Soumettre un client
+  Future<void> submitClient(String clientId) async {
+    try {
+      final client = await _clientService.getClientById(clientId);
+      if (client == null) {
+        throw Exception("Client non trouvé.");
+      }
+      final updatedClient = client.copyWith(status: 'Soumis');
+      await _clientService.updateClient(updatedClient);
+      final index = _clients.indexWhere((c) => c.id == clientId);
+      if (index != -1) {
+        _clients[index] = updatedClient;
+        notifyListeners();
+      }
+    } catch (e) {
+      _errorMessage = "Failed to submit client: $e";
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  // Valider un client
+  Future<void> validateClient(String clientId) async {
+    try {
+      final client = await _clientService.getClientById(clientId);
+      if (client == null) {
+        throw Exception("Client non trouvé.");
+      }
+      final updatedClient = client.copyWith(status: 'Validé');
+      await _clientService.updateClient(updatedClient);
+
+      final index = _clients.indexWhere((c) => c.id == clientId);
+      if (index != -1) {
+        _clients[index] = updatedClient;
+        notifyListeners();
+      }
+    } catch (e) {
+      _errorMessage = "Failed to validate client: $e";
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  // Rejeter un client
+  Future<void> rejectClient(String clientId, String rejectionReason) async {
+    try {
+      final client = await _clientService.getClientById(clientId);
+      if (client == null) {
+        throw Exception("Client non trouvé.");
+      }
+      final updatedClient = client.copyWith(
+        status: 'Rejeté',
+        commentaire: rejectionReason,
+      );
+      await _clientService.updateClient(updatedClient);
+      final index = _clients.indexWhere((c) => c.id == clientId);
+      if (index != -1) {
+        _clients[index] = updatedClient;
+        notifyListeners();
+      }
+    } catch (e) {
+      _errorMessage = "Failed to reject client: $e";
+      notifyListeners();
+      rethrow;
+    }
   }
 }

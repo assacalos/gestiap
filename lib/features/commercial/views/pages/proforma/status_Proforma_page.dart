@@ -5,7 +5,8 @@ import 'package:gestiap/features/commercial/views/pages/proforma/liste_proforma_
 import 'package:gestiap/features/commercial/views/pages/proforma/proforma_form_page.dart';
 import 'package:provider/provider.dart';
 import 'package:gestiap/features/commercial/providers/proformas/proforma_provider.dart';
-import 'package:gestiap/providers/auth_provider.dart'; // Importez votre AuthProvider
+import 'package:gestiap/providers/auth_provider.dart'; // Assurez-vous que ce chemin est correct
+import 'package:google_fonts/google_fonts.dart'; // Importez le package google_fonts
 
 class ProformaDashboardPage extends StatefulWidget {
   const ProformaDashboardPage({super.key});
@@ -68,57 +69,80 @@ class _ProformaDashboardPageState extends State<ProformaDashboardPage> {
         }
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Gestion des Proforma')),
+          appBar: AppBar(
+            title: const Text(
+              'Gestion des Proformas',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ), // Titre plus marqué
+            centerTitle: true, // Centre le titre
+            elevation: 0, // Supprime l'ombre par défaut de l'AppBar
+            backgroundColor: Colors.blue, // Ajoute une couleur d'arrière-plan
+            titleTextStyle: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.white, // Couleur du texte du titre
+            ),
+          ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(20.0), // Augmente le padding
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'Proforma',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                Text(
+                  'Tableau de Bord Proformas', // Titre plus descriptif
+                  style: TextStyle(
+                    fontSize: 24, // Augmente la taille de la police
+                    fontWeight: FontWeight.bold, // Met en gras
+                    fontFamily: 'Poppins',
+                    color: Colors.blue[800], // Couleur personnalisée
+                  ),
+                  textAlign: TextAlign.center, // Centre le titre
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _DashboardButton(
-                      label: 'Proforma Validés',
-                      onPressed: () {
-                        _navigateToProformaList(
-                          context,
-                          QuoteModel.statusValidated,
-                          quoteProvider,
-                        );
-                      },
-                    ),
-                    _DashboardButton(
-                      label: 'Proforma Soumis',
-                      onPressed: () {
-                        _navigateToProformaList(
-                          context,
-                          QuoteModel.statusPendingValidation,
-                          quoteProvider,
-                        );
-                      },
-                    ),
-                  ],
+                const SizedBox(height: 30), // Augmente l'espacement
+                _buildDashboardButton(
+                  context: context,
+                  label: 'Proformas Validés',
+                  onPressed: () {
+                    _navigateToProformaList(
+                      context,
+                      QuoteModel.statusValidated,
+                      quoteProvider,
+                    );
+                  },
+                  icon: Icons.check_circle_outline, // Ajoute une icône
+                  backgroundColor: Colors.green[100],
+                  textColor: Colors.green[800],
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _DashboardButton(
-                      label: 'Proforma Rejetés',
-                      onPressed: () {
-                        _navigateToProformaList(
-                          context,
-                          QuoteModel.statusRejected,
-                          quoteProvider,
-                        );
-                      },
-                    ),
-                  ],
+                const SizedBox(height: 20), // Augmente l'espacement
+                _buildDashboardButton(
+                  context: context,
+                  label: 'Proformas Soumis',
+                  onPressed: () {
+                    _navigateToProformaList(
+                      context,
+                      QuoteModel.statusPendingValidation,
+                      quoteProvider,
+                    );
+                  },
+                  icon: Icons.pending_actions, // Ajoute une icône
+                  backgroundColor: Colors.amber[100],
+                  textColor: Colors.amber[800],
+                ),
+                const SizedBox(height: 20), // Augmente l'espacement
+                _buildDashboardButton(
+                  context: context,
+                  label: 'Proformas Rejetés',
+                  onPressed: () {
+                    _navigateToProformaList(
+                      context,
+                      QuoteModel.statusRejected,
+                      quoteProvider,
+                    );
+                  },
+                  icon: Icons.cancel_outlined, // Ajoute une icône
+                  backgroundColor: Colors.red[100],
+                  textColor: Colors.red[800],
                 ),
               ],
             ),
@@ -142,6 +166,47 @@ class _ProformaDashboardPageState extends State<ProformaDashboardPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildDashboardButton({
+    required BuildContext context,
+    required String label,
+    required VoidCallback onPressed,
+    IconData? icon, // Ajoute un paramètre pour l'icône
+    Color? backgroundColor, // Ajoute un paramètre pour la couleur de fond
+    Color? textColor,
+  }) {
+    return ElevatedButton.icon(
+      // Utilise ElevatedButton.icon
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 18), // Ajuste le padding
+        textStyle: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w500,
+        ), // Augmente la taille et l'épaisseur de la police
+        elevation: 8, // Ajoute de l'ombre
+        shape: RoundedRectangleBorder(
+          // Arrondit les bords
+          borderRadius: BorderRadius.circular(12),
+        ),
+        backgroundColor:
+            backgroundColor ??
+            Colors
+                .blue, // Utilise la couleur de fond par défaut si non spécifiée
+        foregroundColor:
+            textColor ?? Colors.white, // Couleur du texte et de l'icône
+      ),
+      icon:
+          icon != null
+              ? Icon(icon, size: 28)
+              : const SizedBox.shrink(), // Ajoute l'icône si elle est fournie
+
+      label: Text(
+        label,
+        style: const TextStyle(fontFamily: 'Roboto'),
+      ), // Le texte du bouton
     );
   }
 
@@ -184,25 +249,7 @@ class _ProformaDashboardPageState extends State<ProformaDashboardPage> {
           duration: Duration(seconds: 5),
         ),
       );
-      //  Navigator.of(context).pushReplacementNamed('/login'); // Navigate to login
+      //  Navigator.of(context).pushReplacementNamed('/login'); // Navigate to login
     }
-  }
-}
-
-class _DashboardButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onPressed;
-
-  const _DashboardButton({required this.label, required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Text(label, textAlign: TextAlign.center),
-      ),
-    );
   }
 }

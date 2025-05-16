@@ -84,10 +84,7 @@ class _InvoiceFormPageState extends State<InvoiceFormPage> {
         clientId: _clientIdController.text,
         clientName: _clientNameController.text,
         dateCreation: DateTime.parse(_dateCreationController.text),
-        dateEcheance:
-            _dateEcheanceController.text.isNotEmpty
-                ? DateTime.parse(_dateEcheanceController.text)
-                : null,
+
         items: _items,
         totalHT: _totalHT,
         totalTTC: _totalTTC,
@@ -180,14 +177,7 @@ class _InvoiceFormPageState extends State<InvoiceFormPage> {
                 readOnly: true,
                 onTap: () => _selectDate(context, _dateCreationController),
               ),
-              TextFormField(
-                controller: _dateEcheanceController,
-                decoration: const InputDecoration(
-                  labelText: 'Date d\'Échéance (Optionnel)',
-                ),
-                readOnly: true,
-                onTap: () => _selectDate(context, _dateEcheanceController),
-              ),
+
               const SizedBox(height: 20),
               const Text(
                 'Articles:',

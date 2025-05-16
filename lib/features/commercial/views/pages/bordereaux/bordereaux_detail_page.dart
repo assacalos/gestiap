@@ -22,7 +22,7 @@ class BordereauDetailsPage extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text('Intitulé: ${bordereau.intitule}'),
-            Text('Client: ${bordereau.clientName}'),
+            Text('Client: ${bordereau.clientEntreprise}'),
             Text('Email: ${bordereau.clientEmail}'),
             Text('Contact: ${bordereau.clientContact}'),
             Text('Adresse: ${bordereau.clientAdresse}'),

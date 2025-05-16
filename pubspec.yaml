@@ -41,8 +41,15 @@ dependencies:
   pdf: ^3.10.4
   uuid: ^4.0.0
   open_file: ^3.2.1
-  image_picker: ^0.8.0 # Ou la dernière version
+  image_picker: ^1.1.2 # Ou la dernière version
   google_fonts: ^6.1.1 # Assurez-vous d'utiliser la dernière version
+  url_launcher: ^6.1.10 # Ou la dernière version
+  syncfusion_flutter_pdfviewer: ^29.2.4
+  #open_filex: ^4.3.2
+  path_provider: ^2.1.2
+  #scan: ^1.0.0
+  #flutter_document_scanner: ^1.0.2
+   #qr_code_scanner: ^1.0.1 Ou la dernière version
  
 
   # The following adds the Cupertino Icons font to your application.

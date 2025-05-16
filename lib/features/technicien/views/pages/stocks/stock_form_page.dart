@@ -50,13 +50,17 @@ class _StockFormPageState extends State<StockFormPage> {
   void _saveOrUpdateStockItem(BuildContext context) {
     if (_formKey.currentState!.validate()) {
       final newItem = StockItem(
-        id: widget.itemToEdit!.id, // Conserver l'ID pour la modification
+        id: widget.itemToEdit?.id ?? '', // Générer un nouvel ID si ajout
         codeProduit: _codeProduitController.text.trim(),
         description: _descriptionController.text.trim(),
         prixVenteUnitaire: double.tryParse(_prixVenteController.text) ?? 0.0,
         quantiteEntree: int.tryParse(_quantiteEntreeController.text) ?? 0,
         prixAchatUnitaire: double.tryParse(_prixAchatController.text) ?? 0.0,
         dateAjout: widget.itemToEdit?.dateAjout, // Conserver la date d'ajout
+        quantiteEnStock:
+            widget.itemToEdit?.quantiteEnStock ??
+            _quantiteEntreeController.text
+                .trim(), // Initialiser le stock à l'entrée
       );
 
       if (widget.itemToEdit == null) {
@@ -113,7 +117,9 @@ class _StockFormPageState extends State<StockFormPage> {
               ),
               TextFormField(
                 controller: _prixVenteController,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: const InputDecoration(
                   labelText: 'Prix Vente Unitaire',
                 ),
@@ -143,7 +149,9 @@ class _StockFormPageState extends State<StockFormPage> {
               ),
               TextFormField(
                 controller: _prixAchatController,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: const InputDecoration(
                   labelText: 'Prix Achat Unitaire',
                 ),

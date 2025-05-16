@@ -3,6 +3,8 @@ import 'package:gestiap/core/widgets/widgets_widgets.dart'; // Assurez-vous que 
 import 'package:gestiap/features/commercial/data/models/bordereaux_model.dart'; // Assurez-vous que ce chemin est correct
 import 'package:gestiap/features/commercial/views/pages/bordereaux/liste_bordereaux_page.dart'; // Assurez-vous que ce chemin est correct
 import 'package:gestiap/features/patron/views/bordereaux/bordereaux_attente_patron.dart'; // Assurez-vous que ce chemin est correct
+import 'package:gestiap/features/patron/views/bordereaux/bordereaux_rejected_patron.dart';
+import 'package:gestiap/features/patron/views/bordereaux/bordereaux_validated_patron.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class PatronBordereauxDashboardPage extends StatefulWidget {
@@ -74,10 +76,7 @@ class _PatronBordereauxDashboardPageState
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder:
-                        (context) => ListeBordereauxPage(
-                          status: BordereauModel.statusValidated,
-                        ),
+                    builder: (context) => ValidatedBordereauxList(),
                   ),
                 );
               },
@@ -93,10 +92,7 @@ class _PatronBordereauxDashboardPageState
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder:
-                        (context) => ListeBordereauxPage(
-                          status: BordereauModel.statusRejected,
-                        ),
+                    builder: (context) => RejectedBordereauxList(),
                   ),
                 );
               },

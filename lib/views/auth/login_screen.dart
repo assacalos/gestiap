@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:gestiap/features/patron/views/patron_dashboard_page.dart';
+import 'package:gestiap/features/rh/views/pages/ressource_humaine_dashboard.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../admin/admin_dashboard.dart'; // Redirection après connexion
@@ -70,6 +72,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         case "comptable":
                           nextScreen = ComptabiliteDashboardPage();
                           break;
+                        case "technicien":
+                          nextScreen = TechnicienDashboardPage();
+                          break;
+                        case "rh":
+                          nextScreen =
+                              RhDashboardPage(); // Remplacez par la page client appropriée
+                          break;
+                        case "patron":
+                          nextScreen =
+                              PatronDashboardPage(); // Remplacez par la page client appropriée
+                          break;
+
                         default:
                           nextScreen = LoginScreen();
                       }

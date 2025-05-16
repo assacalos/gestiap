@@ -1,14 +1,18 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:gestiap/providers/auth_provider.dart';
+import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
 import 'package:gestiap/features/commercial/utils/bordereaux_pdf_generator.dart';
 import 'package:gestiap/features/commercial/data/models/bordereaux_model.dart';
-
 import 'package:intl/intl.dart';
 import 'package:gestiap/features/commercial/data/models/proforma_model.dart';
 import 'package:gestiap/features/commercial/providers/bordereaux/bordereaux_provider.dart';
 import 'package:gestiap/features/commercial/data/models/client_model.dart';
 import 'package:gestiap/features/commercial/providers/clients/clients_provider.dart';
 import 'package:gestiap/features/commercial/providers/proformas/proforma_provider.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Importez ceci
 
 class BordereauFormPage extends StatefulWidget {
   final BordereauModel? bordereauToEdit;
@@ -23,7 +27,8 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
   String? _selectedClientId;
   String? _selectedQuoteId;
   String _deliveryStatus = "Livré";
-  String _warrantyDelay = "3 mois";
+  final TextEditingController _warrantyDelayController =
+      TextEditingController();
   DateTime _deliveryDate = DateTime.now();
   late String bordereauId;
   late bool isEditing;
@@ -32,7 +37,8 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
   String? _selectedCommercialId;
   List<Client> _clients = [];
   List<QuoteModel> _quotes = [];
-  bool _isLoading = true; // Ajout d'un indicateur de chargement
+  bool _isLoading = true;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -41,37 +47,50 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
     bordereauId =
         widget.bordereauToEdit?.id ??
         DateTime.now().millisecondsSinceEpoch.toString();
+
     if (isEditing) {
-      final bordereau = widget.bordereauToEdit!;
-      _selectedClientId = bordereau.clientId;
-      _selectedQuoteId = bordereau.devisId;
-      _deliveryStatus = bordereau.etatLivraison;
-      _warrantyDelay = bordereau.delaiGarantie;
-      _deliveryDate = bordereau.dateLivraison;
-      _intituleController.text = bordereau.intitule;
-      _items = List.from(bordereau.articles);
-      _selectedCommercialId = bordereau.commercialId;
+      _warrantyDelayController.text = widget.bordereauToEdit!.delaiGarantie;
+      _intituleController.text = widget.bordereauToEdit!.intitule;
+      _selectedClientId = widget.bordereauToEdit!.clientId;
+      _selectedQuoteId = widget.bordereauToEdit!.devisId;
+      _deliveryStatus = widget.bordereauToEdit!.etatLivraison;
+      _deliveryDate = widget.bordereauToEdit!.dateLivraison;
+      _items = List.from(widget.bordereauToEdit!.articles);
+      _selectedCommercialId = widget.bordereauToEdit!.commercialId;
     }
+
+    final authProvider = Provider.of<AppAuthProvider>(context, listen: false);
+    final commercialId = authProvider.user?.uid;
+    _selectedCommercialId = commercialId;
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _warrantyDelayController.dispose();
+    _intituleController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
     if (mounted) {
-      final provider = Provider.of<BordereauxProvider>(context, listen: false);
+      final bordereauxProvider = Provider.of<BordereauxProvider>(
+        context,
+        listen: false,
+      );
       try {
-        // Fetch clients and quotes and await
-        await provider.clientProvider.getClients();
-        await provider.quoteProvider.loadQuotes();
-        //assign to local variables
-        _clients = provider.clientProvider.clients;
-        _quotes = provider.quoteProvider.quotes;
+        await bordereauxProvider.clientProvider.loadClients();
+        await bordereauxProvider.quoteProvider.loadQuotes();
+        _clients = bordereauxProvider.clientProvider.clients;
+        _quotes = bordereauxProvider.quoteProvider.quotes;
       } catch (e) {
-        // Gérer les erreurs (par exemple, afficher un message à l'utilisateur)
-        print("Error loading data: $e"); // Important : Log l'erreur
+        print("Erreur lors du chargement des données : $e");
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to load data: ${e.toString()}'),
+              content: Text(
+                'Échec du chargement des données : ${e.toString()}',
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -79,8 +98,7 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
       } finally {
         if (mounted) {
           setState(() {
-            _isLoading =
-                false; // Mettre à jour l'état une fois le chargement terminé
+            _isLoading = false;
           });
         }
       }
@@ -93,8 +111,14 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
         .where(
           (q) =>
               q.clientId == _selectedClientId &&
-              q.status.toLowerCase() == 'validé',
+              q.status.trim().toLowerCase() == 'validé',
         )
+        .toList();
+  }
+
+  List<Client> get _validatedClients {
+    return _clients
+        .where((client) => client.status.trim().toLowerCase() == 'validé')
         .toList();
   }
 
@@ -109,7 +133,7 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
       return BordereauModel(
         id: bordereauId,
         clientId: client.id,
-        clientName: client.nom,
+        clientEntreprise: client.entreprise,
         clientAdresse: client.adresse,
         commercialId: _selectedCommercialId!,
         commentaire: _intituleController.text,
@@ -121,17 +145,8 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
             isEditing ? widget.bordereauToEdit!.createdAt : DateTime.now(),
         dateLivraison: _deliveryDate,
         etatLivraison: _deliveryStatus,
-        delaiGarantie: _warrantyDelay,
-        articles: List.from(
-          quote.items.map(
-            (item) => ArticleLivraison(
-              ref: item.ref,
-              description: item.description,
-              quantity: item.quantity,
-              status: BordereauModel.statusPendingValidation,
-            ),
-          ),
-        ),
+        delaiGarantie: _warrantyDelayController.text,
+        articles: _items,
         status:
             isEditing
                 ? widget.bordereauToEdit!.status
@@ -171,19 +186,65 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
             TextButton(
               style: TextButton.styleFrom(foregroundColor: Colors.blue),
               child: const Text('Soumettre'),
-              onPressed: () {
-                bordereauxProvider.addBordereau(bordereau, context);
-                Navigator.of(dialogContext).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Bordereau soumis !')),
-                );
-                Navigator.pop(context);
+              onPressed: () async {
+                Navigator.of(dialogContext).pop(); // Close the dialog first.
+                setState(() {
+                  _isSaving = true;
+                });
+                try {
+                  await bordereauxProvider.addBordereau(bordereau, context);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Bordereau soumis !')),
+                    );
+                    Navigator.pop(context); // Pop the form page.
+                  }
+                } catch (error) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Erreur lors de la soumission: $error'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } finally {
+                  if (mounted) {
+                    setState(() {
+                      _isSaving = false;
+                    });
+                  }
+                }
               },
             ),
           ],
         );
       },
     );
+  }
+
+  Widget _buildSaveAndSubmitIcon() {
+    return _isSaving
+        ? const CircularProgressIndicator(color: Colors.white)
+        : const Icon(Icons.send);
+  }
+
+  Future<void> _displayPdf(List<int> pdfBytes, String fileName) async {
+    try {
+      final outputDir = await getTemporaryDirectory();
+      final filePath = '${outputDir.path}/$fileName';
+      final file = File(filePath);
+
+      await file.writeAsBytes(pdfBytes);
+
+      final result = await OpenFile.open(file.path);
+
+      if (result.type != ResultType.done) {
+        debugPrint('Erreur lors de l\'ouverture du PDF : ${result.message}');
+      }
+    } catch (e) {
+      debugPrint('Erreur lors de l\'affichage du PDF : $e');
+    }
   }
 
   @override
@@ -193,14 +254,53 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
       appBar: AppBar(
         title: Text(isEditing ? "Modifier un Bordereau" : "Créer un Bordereau"),
         actions: [
-          if (!isEditing)
+          if (isEditing && widget.bordereauToEdit!.status == "Rejeté")
             IconButton(
-              icon: const Icon(Icons.send),
+              icon: const Icon(Icons.delete),
               onPressed: () {
-                final currentBordereau = _getCurrentBordereauFromForm();
-                if (currentBordereau != null) {
-                  _showConfirmationDialog(context, currentBordereau, provider);
-                }
+                showDialog(
+                  context: context,
+                  builder:
+                      (context) => AlertDialog(
+                        title: const Text('Supprimer le bordereau'),
+                        content: const Text(
+                          'Êtes-vous sûr de vouloir supprimer ce bordereau ?',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Annuler'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              provider.deleteBordereau(
+                                widget.bordereauToEdit!.id,
+                                context,
+                              );
+                              Navigator.of(context).pop();
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text(
+                              'Supprimer',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
+                      ),
+                );
+              },
+            ),
+          if (isEditing && widget.bordereauToEdit!.status == "Validé")
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf),
+              onPressed: () async {
+                final pdfBytes = await BordereauPdfGenerator.generatePdf(
+                  widget.bordereauToEdit!,
+                );
+                _displayPdf(
+                  pdfBytes,
+                  "Bordereau_${widget.bordereauToEdit!.id}.pdf",
+                );
               },
             ),
         ],
@@ -209,9 +309,7 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
         padding: const EdgeInsets.all(16.0),
         child:
             _isLoading
-                ? const Center(
-                  child: CircularProgressIndicator(),
-                ) // Affiche le loader pendant le chargement
+                ? const Center(child: CircularProgressIndicator())
                 : Form(
                   key: _formKey,
                   child: ListView(
@@ -224,16 +322,15 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // Sélection du client
                       DropdownButtonFormField<String>(
                         decoration: const InputDecoration(labelText: "Client"),
                         value: _selectedClientId,
                         items:
-                            _clients
+                            _validatedClients
                                 .map(
                                   (client) => DropdownMenuItem(
                                     value: client.id,
-                                    child: Text(client.nom),
+                                    child: Text(client.entreprise),
                                   ),
                                 )
                                 .toList(),
@@ -250,7 +347,6 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
                                 value == null ? 'Sélectionnez un client' : null,
                       ),
                       const SizedBox(height: 16),
-                      // Sélection du devis confirmé
                       DropdownButtonFormField<String>(
                         decoration: const InputDecoration(
                           labelText: "Proforma confirmé",
@@ -276,18 +372,32 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
                                 "Livraison pour Proforma #${selectedQuote.id}";
 
                             _items =
-                                selectedQuote.items
-                                    .map(
-                                      (e) => ArticleLivraison(
-                                        ref: e.ref,
-                                        description: e.description,
-                                        quantity: e.quantity,
-                                        status: BordereauModel.statusSubmitted,
-                                      ),
-                                    )
-                                    .toList();
-
-                            _warrantyDelay = "3 mois";
+                                selectedQuote.items.map((item) {
+                                  final existingItem =
+                                      isEditing
+                                          ? _items.firstWhere(
+                                            (existing) =>
+                                                existing.ref == item.ref,
+                                            orElse:
+                                                () => ArticleLivraison(
+                                                  ref: item.ref,
+                                                  description: item.description,
+                                                  quantity: item.quantity,
+                                                  status:
+                                                      BordereauModel
+                                                          .statusPendingValidation,
+                                                ),
+                                          )
+                                          : ArticleLivraison(
+                                            ref: item.ref,
+                                            description: item.description,
+                                            quantity: item.quantity,
+                                            status:
+                                                BordereauModel
+                                                    .statusPendingValidation,
+                                          );
+                                  return existingItem;
+                                }).toList();
                             _deliveryDate = DateTime.now();
                           });
                         },
@@ -296,7 +406,6 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
                                 value == null ? 'Sélectionnez un devis' : null,
                       ),
                       const SizedBox(height: 16),
-                      // Intitulé
                       TextFormField(
                         controller: _intituleController,
                         decoration: const InputDecoration(
@@ -311,36 +420,13 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      // Commercial ID
                       TextFormField(
-                        decoration: const InputDecoration(
-                          labelText: "Commercial ID",
-                          border: OutlineInputBorder(),
-                        ),
-                        initialValue: _selectedCommercialId,
-                        onChanged: (val) {
-                          setState(() {
-                            _selectedCommercialId = val;
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Veuillez entrer l\'ID du commercial';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      // Délai de garantie
-                      TextFormField(
+                        controller: _warrantyDelayController,
                         decoration: const InputDecoration(
                           labelText: "Délai de garantie",
                         ),
-                        initialValue: _warrantyDelay,
-                        onChanged: (val) => _warrantyDelay = val,
                       ),
                       const SizedBox(height: 16),
-                      // Date de livraison
                       ListTile(
                         title: Text(
                           "Date de livraison : ${DateFormat.yMd().add_Hm().format(_deliveryDate)}",
@@ -374,55 +460,143 @@ class _BordereauFormPageState extends State<BordereauFormPage> {
                           }
                         },
                       ),
-                      const SizedBox(height: 16),
-                      // État de livraison
-                      DropdownButtonFormField<String>(
-                        value: _deliveryStatus,
-                        decoration: const InputDecoration(
-                          labelText: "État de livraison",
-                        ),
-                        items:
-                            ["Livré", "En cours", "Annulé"]
-                                .map(
-                                  (status) => DropdownMenuItem(
-                                    value: status,
-                                    child: Text(status),
-                                  ),
-                                )
-                                .toList(),
-                        onChanged:
-                            (val) => setState(() => _deliveryStatus = val!),
-                      ),
                       const SizedBox(height: 24),
-                      // Aperçu des articles
                       if (_items.isNotEmpty) ...[
                         const Text(
                           "Articles à livrer :",
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
-                        ...(isEditing
-                            ? _items.map(
-                              (item) => ListTile(
-                                title: Text(item.description),
-                                subtitle: Text(
-                                  "Réf: ${item.ref} - Qté: ${item.quantity} - Statut: ${item.status}",
-                                ),
-                              ),
-                            )
-                            : _items.map(
-                              (item) => ListTile(
-                                title: Text(item.description),
-                                subtitle: Text(
-                                  "Réf: ${item.ref} - Qté: ${item.quantity}",
-                                ),
-                              ),
-                            )),
-                        const SizedBox(height: 16),
+                        Column(
+                          children:
+                              _items.map((item) {
+                                return StatefulBuilder(
+                                  builder: (context, setState) {
+                                    return ListTile(
+                                      title: Text(item.description),
+                                      subtitle: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Réf: ${item.ref} - Quantité: ${item.quantity}",
+                                          ),
+                                          DropdownButtonFormField<String>(
+                                            value: item.status,
+                                            items: const [
+                                              DropdownMenuItem(
+                                                value:
+                                                    BordereauModel
+                                                        .statusPendingValidation,
+                                                child: Text(
+                                                  "En attente de validation",
+                                                ),
+                                              ),
+                                              DropdownMenuItem(
+                                                value:
+                                                    BordereauModel
+                                                        .statusValidated,
+                                                child: Text("Livré"),
+                                              ),
+                                              DropdownMenuItem(
+                                                value:
+                                                    BordereauModel
+                                                        .statusRejected,
+                                                child: Text("Annulé"),
+                                              ),
+                                            ],
+                                            onChanged: (val) {
+                                              setState(() {
+                                                item.status = val!;
+                                                if (val !=
+                                                    BordereauModel
+                                                        .statusPendingValidation) {
+                                                  item.tempsEstimation = null;
+                                                }
+                                              });
+                                            },
+                                            validator:
+                                                (value) =>
+                                                    value == null ||
+                                                            value.isEmpty
+                                                        ? 'Sélectionnez un statut'
+                                                        : null,
+                                          ),
+                                          if (item.status ==
+                                              BordereauModel
+                                                  .statusPendingValidation)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 8.0,
+                                              ),
+                                              child: TextFormField(
+                                                initialValue:
+                                                    item.tempsEstimation,
+                                                decoration: const InputDecoration(
+                                                  labelText:
+                                                      'Temps d\'estimation (ex: 3 jours)',
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                                onChanged: (val) {
+                                                  item.tempsEstimation = val;
+                                                },
+                                                validator: (val) {
+                                                  if (item.status ==
+                                                          BordereauModel
+                                                              .statusPendingValidation &&
+                                                      (val == null ||
+                                                          val.isEmpty)) {
+                                                    return 'Entrez un temps d\'estimation';
+                                                  }
+                                                  return null;
+                                                },
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                );
+                              }).toList(),
+                        ),
+                        const SizedBox(height: 80),
                       ],
                     ],
                   ),
                 ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ElevatedButton(
+          onPressed: () {
+            final currentBordereau = _getCurrentBordereauFromForm();
+            if (currentBordereau != null) {
+              final provider = Provider.of<BordereauxProvider>(
+                context,
+                listen: false,
+              );
+              _showConfirmationDialog(context, currentBordereau, provider);
+            } else {
+              // Affiche un message d'erreur si le formulaire est incomplet
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Veuillez remplir correctement tous les champs.',
+                  ),
+                  backgroundColor: Colors.redAccent,
+                ),
+              );
+            }
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildSaveAndSubmitIcon(),
+              const SizedBox(width: 8),
+              const Text('Soumission'),
+            ],
+          ),
+        ),
       ),
     );
   }

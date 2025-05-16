@@ -37,7 +37,7 @@ class AppAuthProvider with ChangeNotifier {
     try {
       _user = _authService.getCurrentUser();
       if (_user != null) {
-        _userRole = await _authService.getUserRole(_user!.uid);
+        _userRole = await _authService.getUserRole();
       }
     } catch (e) {
       _errorMessage =
@@ -51,6 +51,13 @@ class AppAuthProvider with ChangeNotifier {
     }
   }
 
+  Future<void> refreshRole() async {
+    if (_user != null) {
+      _userRole = await _authService.getUserRole();
+      notifyListeners();
+    }
+  }
+
   Future<String?> login(String email, String password) async {
     _isLoading = true;
     _errorMessage = null; // Réinitialiser le message d'erreur
@@ -60,7 +67,7 @@ class AppAuthProvider with ChangeNotifier {
       User? user = await _authService.loginUser(email, password);
       if (user != null) {
         _user = user;
-        _userRole = await _authService.getUserRole(_user!.uid);
+        _userRole = await _authService.getUserRole();
         _isLoading = false;
         notifyListeners();
         return _userRole;

@@ -121,4 +121,16 @@ class BordereauService {
       rethrow;
     }
   }
+
+  Stream<List<BordereauModel>> getAllBordereauxStream() {
+    return _firestore
+        .collection(_collectionName) // Utilisez _firestore
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs
+                  .map((doc) => BordereauModel.fromFirestore(doc))
+                  .toList(),
+        );
+  }
 }

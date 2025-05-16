@@ -11,7 +11,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:open_file/open_file.dart';
 
 class BordereauPdfGenerator {
-  static Future<File> generatePdf(BordereauModel bordereau) async {
+  static Future<List<int>> generatePdf(BordereauModel bordereau) async {
     final pdf = pw.Document();
 
     // Charger le logo
@@ -22,6 +22,9 @@ class BordereauPdfGenerator {
     // Charger la police Unicode
     final fontData = await rootBundle.load("assets/fonts/Roboto-Regular.ttf");
     final roboto = pw.Font.ttf(fontData);
+
+    //commercial@example.com
+    //patron@example.com
 
     final dateFormatted = DateFormat(
       'dd/MM/yyyy HH:mm',
@@ -65,7 +68,7 @@ class BordereauPdfGenerator {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        'Client : ${bordereau.clientName}',
+                        'Client : ${bordereau.clientEntreprise}',
                         style: pw.TextStyle(font: roboto),
                       ),
                       pw.Text(
@@ -97,17 +100,37 @@ class BordereauPdfGenerator {
               ),
               pw.SizedBox(height: 12),
               pw.Table.fromTextArray(
-                headers: ['Réf', 'Désignation', 'Quantité'],
+                headers: [
+                  'Réf',
+                  'Désignation',
+                  'Quantité',
+                  'État',
+                ], // Ajout de la colonne 'État'
                 data:
-                    bordereau.articles
-                        .map(
-                          (item) => [
-                            item.ref ?? '',
-                            item.description,
-                            item.quantity.toString(),
-                          ],
-                        )
-                        .toList(),
+                    bordereau.articles.map((item) {
+                      // Convertir l'état en une chaîne lisible
+                      String etatLivraison = '';
+                      switch (item.status) {
+                        case BordereauModel.statusPendingValidation:
+                          etatLivraison = 'En attente';
+                          break;
+                        case BordereauModel.statusValidated:
+                          etatLivraison = 'Livré';
+                          break;
+                        case BordereauModel.statusRejected:
+                          etatLivraison = 'Annulé';
+                          break;
+                        default:
+                          etatLivraison = 'Inconnu';
+                      }
+
+                      return [
+                        item.ref ?? '',
+                        item.description,
+                        item.quantity.toString(),
+                        etatLivraison, // Utilisation de la chaîne convertie
+                      ];
+                    }).toList(),
                 headerStyle: pw.TextStyle(
                   font: roboto,
                   fontWeight: pw.FontWeight.bold,
@@ -116,7 +139,7 @@ class BordereauPdfGenerator {
               ),
               pw.SizedBox(height: 20),
               pw.Text(
-                'État de livraison : ${bordereau.etatLivraison}',
+                'État de livraison global : ${bordereau.etatLivraison}',
                 style: pw.TextStyle(font: roboto),
               ),
               pw.Text(
@@ -152,8 +175,8 @@ class BordereauPdfGenerator {
     );
 
     final output = await getTemporaryDirectory();
-    final file = File("${output.path}/bordereau_${bordereau.id}.pdf");
-    await file.writeAsBytes(await pdf.save());
-    return file;
+    /*    final file = File("${output.path}/bordereau_${bordereau.id}.pdf");
+    await file.writeAsBytes(await pdf.save()); */
+    return await pdf.save();
   }
 }

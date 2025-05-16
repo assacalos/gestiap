@@ -8,7 +8,7 @@ class BordereauModel {
   final String clientId;
   final String commercialId;
   final String commentaire;
-  final String clientName;
+  final String clientEntreprise;
   final String clientEmail;
   final String clientContact;
   final String clientAdresse;
@@ -19,6 +19,7 @@ class BordereauModel {
   final String delaiGarantie;
   final String intitule;
   String status;
+
   final List<ArticleLivraison> articles;
 
   // Définition des constantes statiques pour les statuts
@@ -33,7 +34,7 @@ class BordereauModel {
     required this.clientId,
     required this.commercialId,
     required this.commentaire,
-    required this.clientName,
+    required this.clientEntreprise,
     required this.clientEmail,
     required this.clientContact,
     required this.clientAdresse,
@@ -52,7 +53,7 @@ class BordereauModel {
     String? clientId,
     String? commercialId,
     String? commentaire,
-    String? clientName,
+    String? clientEntreprise,
     String? clientEmail,
     String? clientContact,
     String? clientAdresse,
@@ -68,7 +69,7 @@ class BordereauModel {
     return BordereauModel(
       id: id ?? this.id,
       clientId: clientId ?? this.clientId,
-      clientName: clientName ?? this.clientName,
+      clientEntreprise: clientEntreprise ?? this.clientEntreprise,
       commercialId: commercialId ?? this.commercialId,
       commentaire: commentaire ?? this.commentaire,
       clientEmail: clientEmail ?? this.clientEmail,
@@ -89,7 +90,7 @@ class BordereauModel {
     return {
       'id': id,
       'clientId': clientId,
-      'clientName': clientName,
+      'clientEntreprise': clientEntreprise,
       'commercialId': commercialId,
       'commentaire': commentaire,
       'clientEmail': clientEmail,
@@ -107,18 +108,24 @@ class BordereauModel {
   }
 
   factory BordereauModel.fromMap(Map<String, dynamic> map) {
+    DateTime parseDate(dynamic value) {
+      if (value is Timestamp) return value.toDate();
+      if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
+      return DateTime.now();
+    }
+
     return BordereauModel(
       id: map['id'],
       clientId: map['clientId'],
-      clientName: map['clientName'],
+      clientEntreprise: map['clientEntreprise'],
       commercialId: map['commercialId'],
       commentaire: map['commentaire'],
       clientEmail: map['clientEmail'],
       clientContact: map['clientContact'],
       clientAdresse: map['clientAdresse'],
-      createdAt: DateTime.parse(map['createdAt']),
+      createdAt: parseDate(map['createdAt']),
       devisId: map['devisId'],
-      dateLivraison: DateTime.parse(map['dateLivraison']),
+      dateLivraison: parseDate(map['dateLivraison']),
       etatLivraison: map['etatLivraison'],
       delaiGarantie: map['delaiGarantie'],
       intitule: map['intitule'],
@@ -131,6 +138,16 @@ class BordereauModel {
     );
   }
 
+  // Fonction utilitaire pour convertir les valeurs Firestore en DateTime
+  static DateTime? _firestoreTimestampToDateTime(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate();
+    } else if (value is String) {
+      return DateTime.tryParse(value);
+    }
+    return null; // Ou une autre valeur par défaut, comme DateTime.now();
+  }
+
   factory BordereauModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>?;
     if (data == null) {
@@ -141,16 +158,19 @@ class BordereauModel {
     return BordereauModel(
       id: doc.id,
       clientId: data['clientId'] ?? '',
-      clientName: data['clientName'] ?? '',
+      clientEntreprise: data['clientEntreprise'] ?? '',
       commercialId: data['commercialId'] ?? '',
       commentaire: data['commentaire'] ?? '',
       clientEmail: data['clientEmail'] ?? '',
       clientContact: data['clientContact'] ?? '',
       clientAdresse: data['clientAdresse'] ?? '',
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      createdAt:
+          _firestoreTimestampToDateTime(data['createdAt']) ??
+          DateTime.now(), // Utilisation de la fonction utilitaire
       devisId: data['devisId'] ?? '',
       dateLivraison:
-          (data['dateLivraison'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          _firestoreTimestampToDateTime(data['dateLivraison']) ??
+          DateTime.now(), // Utilisation de la fonction utilitaire
       etatLivraison: data['etatLivraison'] ?? '',
       delaiGarantie: data['delaiGarantie'] ?? '',
       intitule: data['intitule'] ?? '',
@@ -171,7 +191,8 @@ class ArticleLivraison {
   final int ref;
   final String description;
   final int quantity;
-  final String status;
+  String status;
+  String? tempsEstimation;
 
   static const String statusRejected = 'Annulé';
   static const String statusPendingValidation = 'En cours de livraison';
@@ -182,6 +203,7 @@ class ArticleLivraison {
     required this.description,
     required this.quantity,
     required this.status,
+    this.tempsEstimation,
   });
 
   Map<String, dynamic> toMap() {
@@ -190,6 +212,7 @@ class ArticleLivraison {
       'description': description,
       'quantity': quantity,
       'status': status,
+      'tempsEstimation': tempsEstimation,
     };
   }
 
@@ -198,7 +221,8 @@ class ArticleLivraison {
       ref: map['ref'] ?? 0, // Valeurs par défaut
       description: map['description'] ?? '',
       quantity: map['quantity'] ?? 0,
-      status: map['status'] ?? '',
+      status: map['status'] ?? BordereauModel.statusSubmitted,
+      tempsEstimation: map['tempsEstimation'] ?? '',
     );
   }
 
@@ -212,6 +236,7 @@ class ArticleLivraison {
       description: data['description'] ?? '',
       quantity: data['quantity'] ?? 0,
       status: data['status'] ?? 'En attente',
+      tempsEstimation: data['tempsEstimation'] ?? 'Neant',
     );
   }
   // maintenant au niveau des bordereaux aide moi pour la correction du provider et la mise  en place du servicebordereaux, la soumission du bordereaux, la modification,la

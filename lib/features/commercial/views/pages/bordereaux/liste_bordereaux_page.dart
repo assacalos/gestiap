@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:gestiap/features/commercial/data/models/bordereaux_model.dart';
 import 'package:gestiap/features/commercial/providers/bordereaux/bordereaux_provider.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:gestiap/core/widgets/widgets_widgets.dart';
 import 'package:gestiap/features/commercial/utils/bordereaux_pdf_generator.dart';
@@ -71,7 +73,7 @@ class _ListeBordereauxPageState extends State<ListeBordereauxPage> {
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Client: ${bordereau.clientName}'),
+                        Text('Client: ${bordereau.clientEntreprise}'),
                         Text(
                           'Date: ${bordereau.createdAt.toLocal().formatDate()}',
                         ),
@@ -99,7 +101,7 @@ class _ListeBordereauxPageState extends State<ListeBordereauxPage> {
                           },
                         ),
                         if (bordereau.status.toLowerCase() !=
-                            BordereauModel.statusValidated.toLowerCase())
+                            BordereauModel.statusRejected.toLowerCase())
                           IconButton(
                             icon: const Icon(Icons.edit, color: Colors.orange),
                             onPressed: () {
@@ -136,15 +138,38 @@ class _ListeBordereauxPageState extends State<ListeBordereauxPage> {
                           ),
                           onPressed: () async {
                             try {
-                              final pdfFile =
+                              // Générer les octets du PDF
+                              final pdfBytes =
                                   await BordereauPdfGenerator.generatePdf(
                                     bordereau,
                                   );
-                              OpenFile.open(pdfFile.path);
+
+                              // Créer un fichier temporaire
+                              final outputDir = await getTemporaryDirectory();
+                              final filePath =
+                                  '${outputDir.path}/bordereau_${bordereau.id}.pdf';
+                              final file = File(filePath);
+
+                              // Écrire les octets dans le fichier
+                              await file.writeAsBytes(pdfBytes);
+
+                              // Ouvrir le fichier PDF
+                              final result = await OpenFile.open(file.path);
+
+                              if (result.type != ResultType.done) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Erreur ouverture PDF : ${result.message}',
+                                    ),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                              }
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Error generating PDF: $e'),
+                                  content: Text('Erreur génération PDF : $e'),
                                   backgroundColor: Colors.red,
                                 ),
                               );

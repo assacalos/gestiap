@@ -13,11 +13,9 @@ class BonDeCommandeModel {
   String status;
   String? commentairePatron;
 
-  static const String statusDraft = 'Brouillon';
-  static const String statusSoumisPatron = 'Soumis au Patron';
-  static const String statusEnCours = 'En Cours'; // Acompte incomplet
-  static const String statusValide = 'Validé';
-  static const String statusRejete = 'Rejeté';
+  static const String statusPendingValidation = 'En Attente de Validation';
+  static const String statusValidated = 'Validé';
+  static const String statusRejected = 'Rejeté';
 
   BonDeCommandeModel({
     this.id,
@@ -28,7 +26,7 @@ class BonDeCommandeModel {
     this.documentScanneUrl,
     this.acompteRecu = 0.0,
     required this.createdAt,
-    this.status = statusDraft,
+    this.status = statusPendingValidation,
     this.commentairePatron,
   });
 
@@ -69,7 +67,7 @@ class BonDeCommandeModel {
       documentScanneUrl: data?['documentScanneUrl'],
       acompteRecu: (data?['acompteRecu'] as num?)?.toDouble() ?? 0.0,
       createdAt: (data?['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      status: data?['status'] ?? statusDraft,
+      status: data?['status'] ?? statusPendingValidation,
       commentairePatron: data?['commentairePatron'],
     );
   }

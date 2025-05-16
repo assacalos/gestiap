@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gestiap/features/patron/views/patron_dashboard_page.dart';
+import 'package:gestiap/features/rh/views/pages/ressource_humaine_dashboard.dart';
 import 'package:provider/provider.dart';
 import 'package:gestiap/providers/auth_provider.dart' as local_auth;
 import 'auth/login_screen.dart';
@@ -13,6 +15,8 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    // FirebaseAuth.instance.signOut();
+
     Future.microtask(() => checkUser());
   }
 
@@ -74,6 +78,10 @@ class _SplashScreenState extends State<SplashScreen> {
         return ComptabiliteDashboardPage();
       case 'technicien':
         return TechnicienDashboardPage();
+      case 'patron':
+        return PatronDashboardPage();
+      case 'rh':
+        return RhDashboardPage();
       default:
         return LoginScreen();
     }

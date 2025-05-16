@@ -77,7 +77,20 @@ class AuthService {
     return _auth.currentUser;
   }
 
-  Future<String?> getUserRole(String uid) async {
+  Future<String?> getUserRole() async {
+    final uid = currentUser?.uid;
+    if (uid == null) return null;
+
+    final doc =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    if (doc.exists) {
+      return doc.data()?['role'] as String?;
+    }
+
+    return null;
+  }
+
+  /* Future<String?> getUserRole(String uid) async {
     try {
       DocumentSnapshot userDoc =
           await _firestore.collection('users').doc(uid).get();
@@ -100,7 +113,7 @@ class AuthService {
       print('🚨 Erreur Firestore lors de la récupération du rôle : $e');
       return null;
     }
-  }
+  } */
 
   Future<void> resetPassword(String email) async {
     try {
